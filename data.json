@@ -1,0 +1,82 @@
+[
+  {
+    "id": "1001",
+    "title": "Dế Mèn Phiêu Lưu Ký",
+    "author": "Tô Hoài",
+    "deadline": "2026-11-15",
+    "priority": "Trung bình",
+    "status": "Đã đọc"
+  },
+  {
+    "id": "1002",
+    "title": "Đắc Nhân Tâm",
+    "author": "Dale Carnegie",
+    "deadline": "2026-10-30",
+    "priority": "Cao",
+    "status": "Đang đọc"
+  },
+  {
+    "id": "1003",
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "deadline": "2026-12-01",
+    "priority": "Cao",
+    "status": "Chưa đọc"
+  },
+  {
+    "id": "1004",
+    "title": "Tuổi Trẻ Đáng Giá Bao Nhiêu",
+    "author": "Rosie Nguyễn",
+    "deadline": "2026-11-05",
+    "priority": "Thấp",
+    "status": "Đã đọc"
+  },
+  {
+    "id": "1005",
+    "title": "Tôi Thấy Hoa Vàng Trên Cỏ Xanh",
+    "author": "Nguyễn Nhật Ánh",
+    "deadline": "2026-12-15",
+    "priority": "Trung bình",
+    "status": "Chưa đọc"
+  },
+  {
+    "id": "1006",
+    "title": "Nhà Giả Kim",
+    "author": "Paulo Coelho",
+    "deadline": "2026-10-20",
+    "priority": "Cao",
+    "status": "Đã đọc"
+  },
+  {
+    "id": "1007",
+    "title": "JavaScript: The Good Parts",
+    "author": "Douglas Crockford",
+    "deadline": "2027-01-10",
+    "priority": "Trung bình",
+    "status": "Chưa đọc"
+  },
+  {
+    "id": "1008",
+    "title": "Sapiens: Lược Sử Loài Người",
+    "author": "Yuval Noah Harari",
+    "deadline": "2026-11-20",
+    "priority": "Cao",
+    "status": "Đang đọc"
+  },
+  {
+    "id": "1009",
+    "title": "Tâm Lý Học Tội Phạm",
+    "author": "Diệp Hồng Vũ",
+    "deadline": "2026-12-05",
+    "priority": "Trung bình",
+    "status": "Đang đọc"
+  },
+  {
+    "id": "1010",
+    "title": "Không Diệt Không Sinh Đừng Sợ Hãi",
+    "author": "Thích Nhất Hạnh",
+    "deadline": "2027-02-28",
+    "priority": "Thấp",
+    "status": "Chưa đọc"
+  }
+]

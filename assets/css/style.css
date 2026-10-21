@@ -1,0 +1,47 @@
+:root {
+    --primary: #0ea5e9;
+    --bg: #f0f9ff;
+    --card-bg: #ffffff;
+    --text: #0c4a6e;
+    --border: #e0f2fe;
+}
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+main {
+    flex: 1;
+}
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border) !important;
+}
+.text-primary { color: var(--primary) !important; }
+.bg-primary { background-color: var(--primary) !important; }
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.btn-primary:hover {
+    background-color: #0284c7;
+    border-color: #0284c7;
+}
+.table-primary {
+    background-color: var(--primary);
+    color: white;
+}
+.table-primary th {
+    background-color: var(--primary);
+    color: white;
+    border-bottom: 2px solid #0284c7;
+}
+.stat-card {
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
