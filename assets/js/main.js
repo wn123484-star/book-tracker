@@ -1,9 +1,9 @@
 const THEME_URLS = {
-    'default': 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
-    'flatly': 'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/flatly/bootstrap.min.css',
-    'cyborg': 'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cyborg/bootstrap.min.css',
-    'sketchy': 'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/sketchy/bootstrap.min.css',
-    'morph': 'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/morph/bootstrap.min.css'
+    'default': 'vendor/bootstrap/bootstrap.min.css',
+    'flatly': 'vendor/bootswatch/flatly.min.css',
+    'cyborg': 'vendor/bootswatch/cyborg.min.css',
+    'sketchy': 'vendor/bootswatch/sketchy.min.css',
+    'morph': 'vendor/bootswatch/morph.min.css'
 };
 
 function applySavedTheme() {
@@ -11,6 +11,19 @@ function applySavedTheme() {
     const linkElement = document.getElementById('themeStylesheet');
     if (linkElement && THEME_URLS[savedTheme]) {
         linkElement.href = THEME_URLS[savedTheme];
+    }
+}
+
+function applyIconPack() {
+    const pack = localStorage.getItem('app_icon_pack') || 'bo1';
+    if (pack === 'bo4') {
+        document.documentElement.classList.add('use-default-icons');
+    } else {
+        document.documentElement.classList.remove('use-default-icons');
+        document.querySelectorAll('.dynamic-icon').forEach(img => {
+            const iconName = img.getAttribute('data-icon');
+            if(iconName) img.src = `assets/img/${pack}/${iconName}`;
+        });
     }
 }
 
@@ -23,11 +36,8 @@ function applyCustomVisuals() {
         document.body.style.backgroundAttachment = 'fixed';
         document.body.classList.add('has-bg');
     } else {
-        document.body.style.backgroundImage = 'url(assets/img/bg-default.jpg)';
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-        document.body.style.backgroundAttachment = 'fixed';
-        document.body.classList.add('has-bg');
+        document.body.style.backgroundImage = 'none';
+        document.body.classList.remove('has-bg');
     }
 }
 
@@ -63,7 +73,12 @@ function compressImage(file, maxWidth, maxHeight, quality, callback) {
 }
 
 function getBooks() {
-    return JSON.parse(localStorage.getItem('books') || '[]');
+    try {
+        const data = localStorage.getItem('books');
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
 }
 
 function saveBooks(booksArray) {
@@ -72,6 +87,7 @@ function saveBooks(booksArray) {
 
 document.addEventListener('DOMContentLoaded', () => {
     applySavedTheme();
+    applyIconPack();
     applyCustomVisuals();
 
     const btnExport = document.getElementById('btnExportJSON');
@@ -111,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
             reader.readAsText(file);
+            e.target.value = '';
         });
     }
 });

@@ -9,11 +9,13 @@ function renderBooks() {
         bookGrid.innerHTML = `
             <div class="col-12">
                 <div class="empty-state bg-body rounded-4 shadow-sm py-5">
-                    <img src="assets/img/icon-empty.png" class="empty-icon mb-3" onerror="this.outerHTML='<i class=\\\'bi bi-journal-x fs-1 d-block mb-3\\\'></i>'">
+                    <i class="bi bi-journal-x fs-1 d-block mb-3 default-icon"></i>
+                    <img data-icon="icon-empty.png" class="empty-icon mb-3 dynamic-icon" alt="">
                     <h5 class="text-muted">Thư viện trống</h5>
                     <p class="mb-0">Hãy thêm cuốn sách đầu tiên của bạn ở biểu mẫu phía trên.</p>
                 </div>
             </div>`;
+        applyIconPack();
         return;
     }
 
@@ -81,6 +83,33 @@ bookForm.addEventListener('submit', (e) => {
         timer: 1500
     });
 });
+
+const btnBatchImport = document.getElementById('btnBatchImport');
+if (btnBatchImport) {
+    btnBatchImport.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const jsonData = JSON.parse(event.target.result);
+                if (Array.isArray(jsonData)) {
+                    const currentBooks = getBooks();
+                    const newBooks = currentBooks.concat(jsonData);
+                    saveBooks(newBooks);
+                    renderBooks();
+                    Swal.fire('Thành công', `Đã nhập thêm ${jsonData.length} cuốn sách vào thư viện!`, 'success');
+                } else {
+                    throw new Error("Format");
+                }
+            } catch {
+                Swal.fire('Lỗi', 'Tệp JSON không đúng định dạng', 'error');
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    });
+}
 
 window.deleteBook = (index) => {
     Swal.fire({

@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const iconPackSelector = document.getElementById('iconPackSelector');
+    if(iconPackSelector) {
+        iconPackSelector.value = localStorage.getItem('app_icon_pack') || 'bo1';
+        iconPackSelector.addEventListener('change', (e) => {
+            localStorage.setItem('app_icon_pack', e.target.value);
+            applyIconPack();
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã đổi bộ Icon', showConfirmButton: false, timer: 1500 });
+        });
+    }
+
     const bgUpload = document.getElementById('bgUpload');
     if(bgUpload) {
         bgUpload.addEventListener('change', (e) => {
