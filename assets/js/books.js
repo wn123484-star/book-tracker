@@ -1,170 +1,146 @@
-let books = [];
-let editingId = null;
+const bookForm = document.getElementById('bookForm');
+const bookGrid = document.getElementById('bookGrid');
 
-const form = document.getElementById('bookForm');
-const tbody = document.getElementById('bookTableBody');
-const btnSubmit = document.getElementById('btnSubmit');
-const btnCancel = document.getElementById('btnCancel');
-const searchInput = document.getElementById('searchInput');
-const filterStatus = document.getElementById('filterStatus');
-const importJson = document.getElementById('importJson');
-
-document.addEventListener('DOMContentLoaded', () => {
-    books = getBooks();
-    renderTable(books);
-});
-
-form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const today = new Date().toISOString().split('T')[0];
-    const deadline = document.getElementById('deadline').value;
+function renderBooks() {
+    const books = getBooks();
+    bookGrid.innerHTML = '';
     
-    if(deadline < today) {
-        Swal.fire('Lỗi!', 'Ngày dự kiến không được ở quá khứ', 'error');
+    if(books.length === 0) {
+        bookGrid.innerHTML = `
+            <div class="col-12">
+                <div class="empty-state bg-body rounded-4 shadow-sm py-5">
+                    <i class="bi bi-journal-x fs-1 d-block mb-3 default-icon"></i>
+                    <img data-icon="icon-empty.png" class="empty-icon mb-3 dynamic-icon" alt="">
+                    <h5 class="text-muted">Thư viện trống</h5>
+                    <p class="mb-0">Hãy thêm cuốn sách đầu tiên của bạn ở biểu mẫu phía trên.</p>
+                </div>
+            </div>`;
+        applyIconPack();
         return;
     }
 
-    const bookData = {
-        id: editingId || generateId(),
-        title: document.getElementById('title').value.trim(),
-        author: document.getElementById('author').value.trim(),
-        deadline: deadline,
-        priority: document.getElementById('priority').value,
+    books.forEach((book, index) => {
+        let badgeClass = 'text-bg-secondary';
+        let iconClass = 'bi-bookmark';
+        
+        if(book.status === 'Đã đọc') { badgeClass = 'text-bg-success'; iconClass = 'bi-check-circle-fill'; }
+        if(book.status === 'Đang đọc') { badgeClass = 'text-bg-warning'; iconClass = 'bi-book-half'; }
+        
+        const defaultImg = 'https://placehold.co/300x400/e9ecef/6c757d?text=No+Cover';
+        const imgUrl = book.coverUrl && book.coverUrl.trim() !== '' ? book.coverUrl : defaultImg;
+        
+        bookGrid.innerHTML += `
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card h-100 card-hover shadow-sm bg-body">
+                    <img src="${imgUrl}" class="card-img-top book-cover" onerror="this.src='${defaultImg}'">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold text-truncate" title="${book.title}">${book.title}</h5>
+                        <p class="card-text mb-3 text-muted text-truncate"><i class="bi bi-person me-1"></i>${book.author}</p>
+                        <div class="mb-4">
+                            <span class="badge ${badgeClass} px-3 py-2 rounded-pill"><i class="bi ${iconClass} me-1"></i>${book.status}</span>
+                        </div>
+                        <div class="mt-auto d-flex gap-2">
+                            <button class="btn btn-light flex-grow-1 border" onclick="editBook(${index})"><i class="bi bi-pencil"></i> Sửa</button>
+                            <button class="btn btn-outline-danger px-3" onclick="deleteBook(${index})"><i class="bi bi-trash3"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+bookForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const books = getBooks();
+    const id = document.getElementById('bookId').value;
+    const coverInput = document.getElementById('coverUrl').value;
+    
+    const newBook = {
+        title: document.getElementById('title').value,
+        author: document.getElementById('author').value,
+        coverUrl: coverInput,
         status: document.getElementById('status').value
     };
-
-    if(editingId) {
-        const index = books.findIndex(b => b.id === editingId);
-        books[index] = bookData;
-        Swal.fire('Thành công', 'Đã cập nhật thông tin sách', 'success');
+    
+    if (id !== '') {
+        books[id] = newBook;
     } else {
-        books.push(bookData);
-        Swal.fire('Thành công', 'Đã thêm sách mới', 'success');
+        books.push(newBook);
     }
-
+    
     saveBooks(books);
-    resetForm();
-    renderTable(books);
+    bookForm.reset();
+    document.getElementById('bookId').value = '';
+    renderBooks();
+    
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Đã lưu thông tin sách',
+        showConfirmButton: false,
+        timer: 1500
+    });
 });
 
-btnCancel.addEventListener('click', resetForm);
-
-searchInput.addEventListener('input', applyFilters);
-filterStatus.addEventListener('change', applyFilters);
-
-if(importJson) {
-    importJson.addEventListener('change', (e) => {
+const btnBatchImport = document.getElementById('btnBatchImport');
+if (btnBatchImport) {
+    btnBatchImport.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        if(!file) return;
-        
+        if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = (event) => {
             try {
-                const importedData = JSON.parse(evt.target.result);
-                if(Array.isArray(importedData)) {
-                    books = importedData;
-                    saveBooks(books);
-                    renderTable(books);
-                    Swal.fire('Thành công', 'Đã nạp dữ liệu từ tệp', 'success');
+                const jsonData = JSON.parse(event.target.result);
+                if (Array.isArray(jsonData)) {
+                    const currentBooks = getBooks();
+                    const newBooks = currentBooks.concat(jsonData);
+                    saveBooks(newBooks);
+                    renderBooks();
+                    Swal.fire('Thành công', `Đã nhập thêm ${jsonData.length} cuốn sách vào thư viện!`, 'success');
                 } else {
-                    Swal.fire('Lỗi', 'Định dạng JSON không hợp lệ', 'error');
+                    throw new Error("Format");
                 }
-            } catch(err) {
-                Swal.fire('Lỗi', 'Không thể đọc tệp JSON', 'error');
+            } catch {
+                Swal.fire('Lỗi', 'Tệp JSON không đúng định dạng', 'error');
             }
-            importJson.value = '';
         };
         reader.readAsText(file);
+        e.target.value = '';
     });
 }
 
-function applyFilters() {
-    const term = searchInput.value.toLowerCase();
-    const status = filterStatus.value;
-    
-    let filtered = books.filter(b => 
-        (b.title.toLowerCase().includes(term) || b.author.toLowerCase().includes(term))
-    );
-    
-    if(status !== 'all') {
-        filtered = filtered.filter(b => b.status === status);
-    }
-    
-    filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-    renderTable(filtered);
-}
-
-function renderTable(dataToRender) {
-    tbody.innerHTML = '';
-    if(dataToRender.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3">Không có dữ liệu!</td></tr>';
-        return;
-    }
-    
-    dataToRender.forEach(b => {
-        let statusClass = b.status === 'Đã đọc' ? 'bg-success' : (b.status === 'Đang đọc' ? 'bg-warning text-dark' : 'bg-secondary');
-        let priorClass = b.priority === 'Cao' ? 'text-danger fw-bold' : (b.priority === 'Trung bình' ? 'text-primary' : 'text-muted');
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="fw-bold">${b.title}</td>
-            <td>${b.author}</td>
-            <td>${formatDate(b.deadline)}</td>
-            <td class="${priorClass}">${b.priority}</td>
-            <td><span class="badge ${statusClass}">${b.status}</span></td>
-            <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editBook('${b.id}')"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteBook('${b.id}')"><i class="fas fa-trash"></i></button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-window.editBook = function(id) {
-    const b = books.find(x => x.id === id);
-    if(!b) return;
-    
-    editingId = id;
-    document.getElementById('title').value = b.title;
-    document.getElementById('author').value = b.author;
-    document.getElementById('deadline').value = b.deadline;
-    document.getElementById('priority').value = b.priority;
-    document.getElementById('status').value = b.status;
-    
-    btnSubmit.innerHTML = '<i class="fas fa-save"></i> Cập Nhật';
-    btnCancel.classList.remove('d-none');
-    window.scrollTo({top: 0, behavior: 'smooth'});
-};
-
-window.deleteBook = function(id) {
+window.deleteBook = (index) => {
     Swal.fire({
-        title: 'Bạn chắc chắn muốn xóa?',
-        text: "Dữ liệu không thể khôi phục!",
+        title: 'Xóa sách?',
+        text: "Bạn không thể hoàn tác hành động này!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Xóa',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Đồng ý xóa',
         cancelButtonText: 'Hủy'
     }).then((result) => {
         if (result.isConfirmed) {
-            books = books.filter(b => b.id !== id);
+            const books = getBooks();
+            books.splice(index, 1);
             saveBooks(books);
-            applyFilters();
-            Swal.fire('Đã xóa!', 'Sách đã được xóa', 'success');
+            renderBooks();
+            Swal.fire('Đã xóa!', 'Sách đã bị xóa khỏi thư viện.', 'success');
         }
     });
 };
 
-function resetForm() {
-    form.reset();
-    editingId = null;
-    btnSubmit.innerHTML = '<i class="fas fa-save"></i> Lưu Sách';
-    btnCancel.classList.add('d-none');
-}
+window.editBook = (index) => {
+    const books = getBooks();
+    const b = books[index];
+    document.getElementById('bookId').value = index;
+    document.getElementById('title').value = b.title;
+    document.getElementById('author').value = b.author;
+    document.getElementById('coverUrl').value = b.coverUrl || '';
+    document.getElementById('status').value = b.status;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
-function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()}`;
-}
+document.addEventListener('DOMContentLoaded', renderBooks);

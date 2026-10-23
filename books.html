@@ -1,23 +1,44 @@
 <!DOCTYPE html>
-<html lang="vi" data-bs-theme="light">
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Danh sách - Quản lý sách</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<style>
-body { background-color: var(--bs-tertiary-bg); }
-.book-cover { height: 320px; object-fit: cover; border-top-left-radius: var(--bs-border-radius-lg); border-top-right-radius: var(--bs-border-radius-lg); }
-.card-hover { transition: all 0.3s ease; border: none; border-radius: var(--bs-border-radius-lg); }
-.card-hover:hover { transform: translateY(-8px); box-shadow: 0 1rem 3rem rgba(0,0,0,.15)!important; }
-.empty-state { padding: 60px 20px; text-align: center; color: var(--bs-secondary-color); }
-</style>
+<link id="themeStylesheet" href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script>
+    (function() {
+        const themeUrls = {
+            'default': 'vendor/bootstrap/bootstrap.min.css',
+            'flatly': 'vendor/bootswatch/flatly.min.css',
+            'cyborg': 'vendor/bootswatch/cyborg.min.css',
+            'sketchy': 'vendor/bootswatch/sketchy.min.css',
+            'morph': 'vendor/bootswatch/morph.min.css'
+        };
+        const savedTheme = localStorage.getItem('app_theme') || 'default';
+        document.getElementById('themeStylesheet').href = themeUrls[savedTheme] || themeUrls['default'];
+        
+        if ((localStorage.getItem('app_icon_pack') || 'bo1') === 'bo4') {
+            document.documentElement.classList.add('use-default-icons');
+        }
+        
+        const bg = localStorage.getItem('app_bg');
+        if (bg) {
+            document.documentElement.classList.add('has-bg');
+            document.write(`<style>body.has-bg { background-image: url(${bg}); background-size: cover; background-position: center; background-attachment: fixed; }</style>`);
+        }
+    })();
+</script>
+<link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
 <div class="container">
-<a class="navbar-brand fw-bold" href="index.html"><i class="bi bi-book-half text-primary me-2"></i>Quản lý sách</a>
+<a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
+<i class="bi bi-book-half me-2 default-icon"></i>
+<img data-icon="logo.png" class="nav-logo me-2 dynamic-icon" alt="">
+Book Tracker
+</a>
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
 <span class="navbar-toggler-icon"></span>
 </button>
@@ -25,157 +46,70 @@ body { background-color: var(--bs-tertiary-bg); }
 <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
 <li class="nav-item"><a class="nav-link active" href="books.html"><i class="bi bi-journal-bookmark me-1"></i>Danh sách</a></li>
-<li class="nav-item"><a class="nav-link" href="about.html"><i class="bi bi-info-circle me-1"></i>Thông tin</a></li>
+<li class="nav-item"><a class="nav-link" href="settings.html"><i class="bi bi-gear me-1"></i>Cài đặt</a></li>
 </ul>
-<button class="btn btn-outline-light border-0" id="darkModeBtn"><i class="bi bi-moon-stars"></i></button>
+<button class="btn btn-outline-light btn-sm ms-2" id="btnExportJSON"><i class="bi bi-download me-1"></i>Sao lưu</button>
+<label class="btn btn-outline-light btn-sm ms-2 mb-0" for="btnImportJSON"><i class="bi bi-upload me-1"></i>Khôi phục</label>
+<input type="file" id="btnImportJSON" accept=".json" style="display: none;">
 </div>
 </div>
 </nav>
 
 <div class="container py-5">
-<div class="card shadow-sm border-0 rounded-4 mb-5">
+<div class="card shadow-sm border-0 rounded-4 mb-5 bg-body-tertiary">
 <div class="card-body p-4">
-<h5 class="fw-bold mb-4"><i class="bi bi-plus-circle me-2 text-primary"></i>Thêm / Cập nhật sách</h5>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<h5 class="fw-bold mb-0">
+<i class="bi bi-plus-circle text-primary me-2 default-icon"></i>
+<img data-icon="icon-add.png" class="title-icon me-2 dynamic-icon" alt="">Thêm / Cập nhật sách
+</h5>
+<div>
+<label class="btn btn-sm btn-outline-primary mb-0" for="btnBatchImport">
+<i class="bi bi-file-earmark-arrow-up me-1"></i>Nhập JSON (Cộng dồn)
+</label>
+<input type="file" id="btnBatchImport" accept=".json" style="display: none;">
+</div>
+</div>
 <form id="bookForm">
 <div class="row g-3">
 <input type="hidden" id="bookId">
 <div class="col-md-3">
 <label class="form-label small text-muted">Tên sách</label>
-<input type="text" class="form-control form-control-lg fs-6" id="title" required>
+<input type="text" class="form-control" id="title" required>
 </div>
 <div class="col-md-3">
 <label class="form-label small text-muted">Tác giả</label>
-<input type="text" class="form-control form-control-lg fs-6" id="author" required>
+<input type="text" class="form-control" id="author" required>
 </div>
 <div class="col-md-3">
 <label class="form-label small text-muted">URL Ảnh bìa</label>
-<input type="url" class="form-control form-control-lg fs-6" id="coverUrl" placeholder="https://...">
+<input type="url" class="form-control" id="coverUrl" placeholder="https://...">
 </div>
 <div class="col-md-2">
 <label class="form-label small text-muted">Trạng thái</label>
-<select class="form-select form-select-lg fs-6" id="status">
+<select class="form-select" id="status">
 <option value="Chưa đọc">Chưa đọc</option>
 <option value="Đang đọc">Đang đọc</option>
 <option value="Đã đọc">Đã đọc</option>
 </select>
 </div>
 <div class="col-md-1 d-flex align-items-end">
-<button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-save"></i></button>
+<button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i></button>
 </div>
 </div>
 </form>
 </div>
 </div>
-
-<h4 class="fw-bold mb-4"><i class="bi bi-bookshelf me-2"></i>Thư viện của bạn</h4>
+<h4 class="fw-bold mb-4">
+<i class="bi bi-bookshelf me-2 default-icon"></i>
+<img data-icon="icon-library.png" class="title-icon me-2 dynamic-icon" alt="">Thư viện của bạn
+</h4>
 <div class="row g-4" id="bookGrid"></div>
 </div>
 
-<script>
-const theme = localStorage.getItem('theme') || 'light';
-document.documentElement.setAttribute('data-bs-theme', theme);
-
-const btn = document.getElementById('darkModeBtn');
-btn.innerHTML = theme === 'light' ? '<i class="bi bi-moon-stars"></i>' : '<i class="bi bi-sun"></i>';
-
-btn.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-bs-theme');
-    const next = current === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-bs-theme', next);
-    localStorage.setItem('theme', next);
-    btn.innerHTML = next === 'light' ? '<i class="bi bi-moon-stars"></i>' : '<i class="bi bi-sun"></i>';
-});
-
-let books = JSON.parse(localStorage.getItem('books') || '[]');
-const bookForm = document.getElementById('bookForm');
-const bookGrid = document.getElementById('bookGrid');
-
-function renderBooks() {
-    bookGrid.innerHTML = '';
-    
-    if(books.length === 0) {
-        bookGrid.innerHTML = '<div class="col-12"><div class="empty-state bg-white rounded-4 shadow-sm"><i class="bi bi-journal-x fs-1 d-block mb-3"></i><h5 class="text-muted">Thư viện trống</h5><p class="mb-0">Hãy thêm cuốn sách đầu tiên của bạn ở biểu mẫu phía trên.</p></div></div>';
-        return;
-    }
-
-    books.forEach((book, index) => {
-        let badgeClass = 'text-bg-secondary';
-        let iconClass = 'bi-bookmark';
-        
-        if(book.status === 'Đã đọc') {
-            badgeClass = 'text-bg-success';
-            iconClass = 'bi-check-circle-fill';
-        }
-        if(book.status === 'Đang đọc') {
-            badgeClass = 'text-bg-warning';
-            iconClass = 'bi-book-half';
-        }
-        
-        const defaultImg = 'https://placehold.co/300x400/e9ecef/6c757d?text=No+Cover';
-        const imgUrl = book.coverUrl && book.coverUrl.trim() !== '' ? book.coverUrl : defaultImg;
-        
-        bookGrid.innerHTML += `
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card h-100 card-hover shadow-sm">
-                    <img src="${imgUrl}" class="card-img-top book-cover" onerror="this.src='${defaultImg}'">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold text-truncate" title="${book.title}">${book.title}</h5>
-                        <p class="card-text mb-3 text-muted text-truncate"><i class="bi bi-person me-1"></i>${book.author}</p>
-                        <div class="mb-4">
-                            <span class="badge ${badgeClass} px-3 py-2 rounded-pill"><i class="bi ${iconClass} me-1"></i>${book.status}</span>
-                        </div>
-                        <div class="mt-auto d-flex gap-2">
-                            <button class="btn btn-light flex-grow-1 border" onclick="editBook(${index})"><i class="bi bi-pencil"></i> Sửa</button>
-                            <button class="btn btn-outline-danger px-3" onclick="deleteBook(${index})"><i class="bi bi-trash3"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-}
-
-bookForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const id = document.getElementById('bookId').value;
-    const newBook = {
-        title: document.getElementById('title').value,
-        author: document.getElementById('author').value,
-        coverUrl: document.getElementById('coverUrl').value,
-        status: document.getElementById('status').value
-    };
-    
-    if (id !== '') {
-        books[id] = newBook;
-    } else {
-        books.push(newBook);
-    }
-    
-    localStorage.setItem('books', JSON.stringify(books));
-    bookForm.reset();
-    document.getElementById('bookId').value = '';
-    renderBooks();
-});
-
-window.deleteBook = (index) => {
-    if(confirm('Bạn có chắc chắn muốn xóa sách này?')) {
-        books.splice(index, 1);
-        localStorage.setItem('books', JSON.stringify(books));
-        renderBooks();
-    }
-};
-
-window.editBook = (index) => {
-    const b = books[index];
-    document.getElementById('bookId').value = index;
-    document.getElementById('title').value = b.title;
-    document.getElementById('author').value = b.author;
-    document.getElementById('coverUrl').value = b.coverUrl || '';
-    document.getElementById('status').value = b.status;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-renderBooks();
-</script>
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="vendor/sweetalert2/sweetalert2.all.min.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/books.js"></script>
 </body>
 </html>

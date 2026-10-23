@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cài đặt - Quản lý sách</title>
+<link id="themeStylesheet" href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script>
+    (function() {
+        const themeUrls = {
+            'default': 'vendor/bootstrap/bootstrap.min.css',
+            'flatly': 'vendor/bootswatch/flatly.min.css',
+            'cyborg': 'vendor/bootswatch/cyborg.min.css',
+            'sketchy': 'vendor/bootswatch/sketchy.min.css',
+            'morph': 'vendor/bootswatch/morph.min.css'
+        };
+        const savedTheme = localStorage.getItem('app_theme') || 'default';
+        document.getElementById('themeStylesheet').href = themeUrls[savedTheme] || themeUrls['default'];
+        
+        if ((localStorage.getItem('app_icon_pack') || 'bo1') === 'bo4') {
+            document.documentElement.classList.add('use-default-icons');
+        }
+        
+        const bg = localStorage.getItem('app_bg');
+        if (bg) {
+            document.documentElement.classList.add('has-bg');
+            document.write(`<style>body.has-bg { background-image: url(${bg}); background-size: cover; background-position: center; background-attachment: fixed; }</style>`);
+        }
+    })();
+</script>
+<link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
+<div class="container">
+<a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
+<i class="bi bi-book-half me-2 default-icon"></i>
+<img data-icon="logo.png" class="nav-logo me-2 dynamic-icon" alt="">
+Book Tracker
+</a>
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+<span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarNav">
+<ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
+<li class="nav-item"><a class="nav-link" href="books.html"><i class="bi bi-journal-bookmark me-1"></i>Danh sách</a></li>
+<li class="nav-item"><a class="nav-link active" href="settings.html"><i class="bi bi-gear me-1"></i>Cài đặt</a></li>
+</ul>
+<button class="btn btn-outline-light btn-sm ms-2" id="btnExportJSON"><i class="bi bi-download me-1"></i>Sao lưu</button>
+<label class="btn btn-outline-light btn-sm ms-2 mb-0" for="btnImportJSON"><i class="bi bi-upload me-1"></i>Khôi phục</label>
+<input type="file" id="btnImportJSON" accept=".json" style="display: none;">
+</div>
+</div>
+</nav>
+
+<div class="container py-5">
+<div class="row justify-content-center">
+<div class="col-md-6">
+<div class="card shadow-sm border-0 rounded-4 bg-body">
+<div class="card-body p-5">
+
+<h4 class="fw-bold mb-4 text-center">
+<i class="bi bi-palette text-primary me-2 default-icon"></i>
+<img data-icon="icon-palette.png" class="title-icon me-2 dynamic-icon" alt="">Tùy chỉnh Giao diện
+</h4>
+<div class="mb-3">
+<label class="form-label fw-bold">Chọn Theme (Màu sắc)</label>
+<select class="form-select form-select-lg" id="themeSelector">
+<option value="default">Mặc định (Bootstrap)</option>
+<option value="flatly">Flatly (Phẳng, Hiện đại)</option>
+<option value="cyborg">Cyborg (Dark Mode sâu)</option>
+<option value="sketchy">Sketchy (Nét vẽ tay)</option>
+<option value="morph">Morph (Nổi khối 3D)</option>
+</select>
+</div>
+<div class="mb-4">
+<label class="form-label fw-bold">Chọn Bộ Icon (Phong cách)</label>
+<select class="form-select form-select-lg" id="iconPackSelector">
+<option value="bo1">Bộ 1 - Flat Vector</option>
+<option value="bo2">Bộ 2 - Line Art</option>
+<option value="bo3">Bộ 3 - Pastel Kawaii (Đang hoàn thiện)</option>
+<option value="bo4">Bộ 4 - Mặc định (Bootstrap Icons)</option>
+</select>
+</div>
+
+<h5 class="fw-bold mb-4 text-center mt-5 pt-4 border-top">
+<i class="bi bi-image text-primary me-2 default-icon"></i>
+<img data-icon="icon-palette.png" class="title-icon me-2 dynamic-icon" alt="">Cá nhân hóa Hình nền
+</h5>
+<div class="mb-4">
+<label class="form-label small text-muted">Tải ảnh nền mới (Dưới 3MB)</label>
+<input class="form-control form-control-sm" type="file" id="bgUpload" accept="image/*">
+</div>
+<button class="btn btn-outline-secondary btn-sm w-100 mb-4" id="btnResetVisuals">Xóa Hình nền</button>
+
+<h5 class="fw-bold mb-4 text-center mt-5 pt-4 border-top">
+<i class="bi bi-envelope-at text-primary me-2 default-icon"></i>
+<img data-icon="icon-email-config.png" class="title-icon me-2 dynamic-icon" alt="">Cấu hình EmailJS
+</h5>
+<form id="emailConfigForm">
+<div class="mb-3">
+<label class="form-label small text-muted">Email nhận báo cáo</label>
+<input type="email" class="form-control form-control-sm" id="targetEmail" required>
+</div>
+<div class="mb-3">
+<label class="form-label small text-muted">Public Key</label>
+<input type="text" class="form-control form-control-sm" id="emailPublicKey" required>
+</div>
+<div class="mb-3">
+<label class="form-label small text-muted">Service ID</label>
+<input type="text" class="form-control form-control-sm" id="emailServiceId" required>
+</div>
+<div class="mb-4">
+<label class="form-label small text-muted">Template ID</label>
+<input type="text" class="form-control form-control-sm" id="emailTemplateId" required>
+</div>
+<button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-floppy me-2"></i>Lưu cấu hình Email</button>
+</form>
+
+<div class="text-center mt-5 pt-3 border-top">
+<button class="btn btn-danger" id="btnClearData"><i class="bi bi-trash3 me-2"></i>Xóa toàn bộ dữ liệu sách</button>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="vendor/sweetalert2/sweetalert2.all.min.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/settings.js"></script>
+</body>
+</html>
