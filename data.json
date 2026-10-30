@@ -1,0 +1,152 @@
+[
+  {
+    "id": "1001",
+    "title": "Hai Con Mèo Ngồi Bên Cửa Sổ",
+    "author": "Nguyễn Nhật Ánh",
+    "description": "Chuyện tình bạn kỳ lạ giữa mèo Gấu và chuột Tí Hon cùng những vần thơ tình ấm áp bên khung cửa sổ.",
+    "deadline": "2026-11-12",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1002",
+    "title": "Dế Mèn Phiêu Lưu Ký",
+    "author": "Tô Hoài",
+    "description": "Hành trình trưởng thành đầy bài học sâu sắc về tình bạn và lòng nhân ái của chú Dế Mèn qua nhiều vùng đất.",
+    "deadline": "2026-11-15",
+    "priority": "Trung bình",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1003",
+    "title": "Đắc Nhân Tâm",
+    "author": "Dale Carnegie",
+    "description": "Cuốn sách gối đầu giường hướng dẫn nghệ thuật giao tiếp, lắng nghe và thu phục lòng người trong cuộc sống.",
+    "deadline": "2026-11-25",
+    "priority": "Cao",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1004",
+    "title": "Clean Code - Mã Sạch",
+    "author": "Robert C. Martin",
+    "description": "Cẩm nang viết mã nguồn rõ ràng, dễ bảo trì, đặt tên biến chuẩn và tối ưu hàm dành cho dân lập trình.",
+    "deadline": "2026-12-01",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1005",
+    "title": "Tuổi Trẻ Đáng Giá Bao Nhiêu",
+    "author": "Rosie Nguyễn",
+    "description": "Những chia sẻ truyền cảm hứng giúp người trẻ định hướng việc tự học, đi trải nghiệm và theo đuổi ước mơ.",
+    "deadline": "2026-11-20",
+    "priority": "Thấp",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1006",
+    "title": "Tôi Thấy Hoa Vàng Trên Cỏ Xanh",
+    "author": "Nguyễn Nhật Ánh",
+    "description": "Những trang viết trong trẻo về tuổi thơ nơi làng quê nghèo với tình anh em và những rung động đầu đời.",
+    "deadline": "2026-12-15",
+    "priority": "Trung bình",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1007",
+    "title": "Nhà Giả Kim",
+    "author": "Paulo Coelho",
+    "description": "Câu chuyện triết lý về chàng chăn cừu Santiago trên con đường vượt sa mạc theo đuổi vận mệnh của đời mình.",
+    "deadline": "2026-11-18",
+    "priority": "Cao",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1008",
+    "title": "JavaScript: The Good Parts",
+    "author": "Douglas Crockford",
+    "description": "Khám phá những tinh hoa cốt lõi của ngôn ngữ JavaScript giúp viết code web mượt mà và ít lỗi hơn.",
+    "deadline": "2027-01-10",
+    "priority": "Trung bình",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1009",
+    "title": "Sapiens: Lược Sử Loài Người",
+    "author": "Yuval Noah Harari",
+    "description": "Bức tranh toàn cảnh về lịch sử tiến hóa và phát triển của văn minh nhân loại từ thời cổ đại đến hiện đại.",
+    "deadline": "2026-12-05",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1010",
+    "title": "Cây Cam Ngọt Của Tôi",
+    "author": "José Mauro de Vasconcelos",
+    "description": "Câu chuyện chạm đến trái tim về cậu bé Zezé tinh nghịch nhưng giàu tình cảm và cây cam ngọt sau vườn.",
+    "deadline": "2026-12-22",
+    "priority": "Trung bình",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1011",
+    "title": "Mắt Biếc",
+    "author": "Nguyễn Nhật Ánh",
+    "description": "Chuyện tình đơn phương da diết của Ngạn dành cho Hà Lan gắn liền với hình ảnh làng Đo Đo mộc mạc.",
+    "deadline": "2026-12-28",
+    "priority": "Trung bình",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1474932430478-367dbb6832c1?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1012",
+    "title": "Tư Duy Nhanh Và Chậm",
+    "author": "Daniel Kahneman",
+    "description": "Phân tích hai hệ thống tư duy của con người giúp đưa ra quyết định sáng suốt hơn trong công việc và đời sống.",
+    "deadline": "2027-01-15",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1013",
+    "title": "Muôn Kiếp Nhân Sinh",
+    "author": "Nguyên Phong",
+    "description": "Những câu chuyện tiền kiếp kỳ lạ giúp người đọc chiêm nghiệm sâu sắc về luật nhân quả trong vũ trụ.",
+    "deadline": "2027-01-25",
+    "priority": "Thấp",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1014",
+    "title": "Cho Tôi Xin Một Vé Đi Tuổi Thơ",
+    "author": "Nguyễn Nhật Ánh",
+    "description": "Chuyến tàu quay ngược thời gian trở về thế giới hồn nhiên của bốn đứa trẻ cu Mùi, Hải cò, Tủn và Tí sún.",
+    "deadline": "2027-02-10",
+    "priority": "Trung bình",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "1015",
+    "title": "Không Diệt Không Sinh Đừng Sợ Hãi",
+    "author": "Thích Nhất Hạnh",
+    "description": "Những lời giảng nhẹ nhàng, sâu lắng giúp tâm hồn bình an và vượt qua nỗi sợ hãi trước những biến cố.",
+    "deadline": "2027-02-28",
+    "priority": "Thấp",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1507842229356-51c61504d3ab?auto=format&fit=crop&w=600&q=80"
+  }
+]

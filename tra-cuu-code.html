@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Tra Cứu Code & Giải Thích Chi Tiết - Tủ Sách Cá Nhân</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            line-height: 1.65;
+            padding-bottom: 90px;
+        }
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #ffffff;
+            padding: 32px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        header h1 { font-size: 1.85rem; margin-bottom: 8px; }
+        header p { color: #cbd5e1; max-width: 880px; margin: 0 auto; font-size: 0.96rem; }
+        .quick-nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .quick-nav a {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s;
+        }
+        .quick-nav a:hover { background: #2563eb; border-color: #60a5fa; }
+
+        .container { max-width: 1320px; margin: 0 auto; padding: 0 18px; }
+
+        .section-title {
+            margin: 32px 0 16px;
+            font-size: 1.35rem;
+            color: #0f172a;
+            border-left: 6px solid #2563eb;
+            padding-left: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .toolbar {
+            background: #ffffff;
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #e2e8f0;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.95rem;
+        }
+        .search-box:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .filter-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+        .filter-btn {
+            padding: 9px 14px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #334155;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .table-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 980px; }
+        th {
+            background: #1e293b;
+            color: #ffffff;
+            text-align: left;
+            padding: 13px 15px;
+            font-size: 0.86rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        td {
+            padding: 13px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+            font-size: 0.92rem;
+        }
+        tr:hover td { background: #f8fafc; }
+
+        .code-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-family: Consolas, monospace;
+            font-size: 0.84rem;
+            margin-bottom: 4px;
+        }
+        .group-gd { background: #dbeafe; color: #1e40af; }
+        .group-css { background: #fce7f3; color: #9d174d; }
+        .group-dl { background: #fef3c7; color: #92400e; }
+        .group-nv { background: #dcfce7; color: #166534; }
+        .group-cd { background: #ede9fe; color: #5b21b6; }
+
+        .file-tag {
+            display: inline-block;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: Consolas, monospace;
+            font-size: 0.8rem;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .fn-tag {
+            color: #be123c;
+            font-family: Consolas, monospace;
+            font-weight: 600;
+            background: #fff1f2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .jump-link {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 4px 10px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .jump-link:hover { background: #2563eb; color: #ffffff; }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(390px, 1fr));
+            gap: 18px;
+        }
+        .detail-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 22px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            scroll-margin-top: 24px;
+        }
+        .detail-card:target {
+            border: 2px solid #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        }
+        .detail-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .detail-card h3 { font-size: 1.08rem; color: #0f172a; }
+        .back-top-btn {
+            background: #f1f5f9;
+            color: #334155;
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid #cbd5e1;
+            white-space: nowrap;
+        }
+        .back-top-btn:hover { background: #1e293b; color: #ffffff; }
+        .detail-card ul { padding-left: 18px; }
+        .detail-card li { margin-bottom: 8px; font-size: 0.92rem; }
+        .code-snippet {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-family: Consolas, monospace;
+            font-size: 0.83rem;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
+        .floating-back-btn {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            background: #2563eb;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+            z-index: 999;
+        }
+        .floating-back-btn:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <header id="top-page">
+        <h1>BẢNG TRA CỨU CODE & GIẢI THÍCH CÚ PHÁP CHI TIẾT</h1>
+        <p>Ưu tiên tra cứu nhanh trên đầu trang. Bấm vào nút "Xem giải thích chi tiết" ở từng dòng để nhảy xuống phần cắt nghĩa từng từ khóa, ký hiệu (#, ., let, const, hàm...) dành cho người mới học.</p>
+        <div class="quick-nav">
+            <a href="#bang-tra-cuu">1. Bảng Tra Cứu Mã Code (Trên cùng)</a>
+            <a href="#giai-thich-cu-phap">2. Giải Thích Ký Hiệu #, ., let, const, Cú Pháp HTML/CSS/JS</a>
+            <a href="#giai-thich-nghiep-vu">3. Giải Thích Chi Tiết Từng Nghiệp Vụ (Email, CRUD, Lọc, Bắt Lỗi)</a>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- PHẦN 1 (ƯU TIÊN TRÊN CÙNG): BẢNG TRA CỨU NHANH TOÀN BỘ MÃ CODE -->
+        <h2 class="section-title" id="bang-tra-cuu">
+            <span>1. Bảng Tra Cứu Nhanh Toàn Bộ Mã Định Danh & Nghiệp Vụ Code</span>
+            <span style="font-size: 0.88rem; font-weight: normal; color: #475569;">Mẹo: Gõ từ khóa (VD: email, biểu đồ, xóa, 404, font, pure) vào ô tìm kiếm bên dưới</span>
+        </h2>
+
+        <div class="toolbar">
+            <input type="text" id="QuickSearch" class="search-box" placeholder="Tìm nhanh theo mã (GD-05, NV-04, DL-08...), tên hàm, xử lý email, biểu đồ, thêm/sửa/xóa, lọc...">
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterGroup('ALL', this)">Tất cả (26 mục)</button>
+                <button class="filter-btn" onclick="filterGroup('GD', this)">Khung HTML (GD)</button>
+                <button class="filter-btn" onclick="filterGroup('CSS', this)">Thiết kế CSS (CSS)</button>
+                <button class="filter-btn" onclick="filterGroup('DL', this)">Dữ liệu & Chung (DL)</button>
+                <button class="filter-btn" onclick="filterGroup('NV', this)">Nghiệp vụ Sách & Email (NV)</button>
+                <button class="filter-btn" onclick="filterGroup('CD', this)">Cài đặt & Test lỗi (CD)</button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 115px;">Mã đánh dấu</th>
+                        <th style="width: 165px;">Tệp chứa code</th>
+                        <th style="width: 240px;">Khung HTML / Tên Hàm / Bộ chọn</th>
+                        <th>Quản lý chức năng gì & Liên kết xem giải thích chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody id="guideTableBody">
+                    <!-- NHÓM GIAO DIỆN HTML (GD) -->
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-01</span></td>
+                        <td><span class="file-tag">index.html</span><br><span class="file-tag">books.html</span><br><span class="file-tag">settings.html</span></td>
+                        <td>Hàm tự chạy <span class="fn-tag">(function(){...})()</span> trong <span class="fn-tag">&lt;head&gt;</span></td>
+                        <td>
+                            <strong>Đồng bộ Giao diện, Font chữ & Bộ icon ngay khi mở trang:</strong> Đọc <span class="fn-tag">localStorage</span> trước khi vẽ thẻ <span class="fn-tag">&lt;body&gt;</span> để không bị nhấp nháy giao diện.<br>
+                            <a class="jump-link" href="#chi-tiet-gd01">🔍 Xem giải thích chi tiết GD-01 ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-02</span></td>
+                        <td><span class="file-tag">Cả 3 tệp HTML</span></td>
+                        <td>Khung <span class="fn-tag">#mainNavbar</span><br>Nút <span class="fn-tag">#btnExportJSON</span><br>Nút <span class="fn-tag">#btnImportJSON</span></td>
+                        <td>
+                            <strong>Thanh điều hướng (Navbar) & Hộp nút Sao lưu / Phục hồi:</strong> Chuyển trang, đóng/mở menu điện thoại (<span class="fn-tag">#mobileMenuBtn</span>) và xuất/nhập tệp dữ liệu <span class="fn-tag">.json</span>.<br>
+                            <a class="jump-link" href="#chi-tiet-dl07">🔍 Xem giải thích Sao lưu & Menu ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-03</span></td>
+                        <td><span class="file-tag">index.html</span></td>
+                        <td>Khung <span class="fn-tag">#statCardsSection</span><br><span class="fn-tag">#totalBooks</span>, <span class="fn-tag">#readBooks</span>, <span class="fn-tag">#unreadBooks</span></td>
+                        <td>
+                            <strong>3 Hộp thống kê số lượng sách ở Trang chủ:</strong> Hiển thị tổng số sách, số sách đã đọc xong và số sách đang/chưa đọc.<br>
+                            <a class="jump-link" href="#chi-tiet-nv01">🔍 Xem giải thích Thống kê & Biểu đồ ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-04</span></td>
+                        <td><span class="file-tag">index.html</span></td>
+                        <td>Khung <span class="fn-tag">#chartSectionCard</span><br>Thẻ <span class="fn-tag">&lt;canvas id="bookChart"&gt;</span></td>
+                        <td>
+                            <strong>Khung vẽ biểu đồ tròn & Thống kê độ ưu tiên:</strong> Chứa vùng vẽ của thư viện Chart.js và 3 bộ đếm Ưu tiên Cao (<span class="fn-tag">#highPriorityCount</span>), Trung bình, Thấp.<br>
+                            <a class="jump-link" href="#chi-tiet-nv01">🔍 Xem giải thích Vẽ biểu đồ Chart.js ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-05</span></td>
+                        <td><span class="file-tag">index.html</span></td>
+                        <td>Khung <span class="fn-tag">#emailSectionCard</span><br>Nút <span class="fn-tag">#btnSendReport</span></td>
+                        <td>
+                            <strong>Khung gửi báo cáo kết quả đọc sách qua Email:</strong> Chứa nút bấm kích hoạt thư viện EmailJS gửi thống kê tủ sách về hộp thư cá nhân.<br>
+                            <a class="jump-link" href="#chi-tiet-email">🔍 Xem giải thích Cơ chế gửi EmailJS ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-06</span></td>
+                        <td><span class="file-tag">Cả 3 tệp HTML</span></td>
+                        <td>Thẻ <span class="fn-tag">&lt;footer id="mainFooter"&gt;</span></td>
+                        <td>
+                            <strong>Chân trang (Footer bắt buộc):</strong> Hiển thị thông tin dự án ở cuối cả 3 trang web, luôn bám đáy màn hình nhờ Flexbox.<br>
+                            <a class="jump-link" href="#chi-tiet-css04">🔍 Xem giải thích Bố cục giữ Footer sát đáy ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-07</span></td>
+                        <td><span class="file-tag">books.html</span></td>
+                        <td>Khung <span class="fn-tag">#bookFormCard</span><br>Biểu mẫu <span class="fn-tag">#bookForm</span><br>Ô ẩn <span class="fn-tag">#bookId</span></td>
+                        <td>
+                            <strong>Khung biểu mẫu Thêm sách mới & Cập nhật sách:</strong> Chứa 7 ô nhập liệu (<span class="fn-tag">#title</span>, <span class="fn-tag">#author</span>, <span class="fn-tag">#deadline</span>, <span class="fn-tag">#priority</span>, <span class="fn-tag">#status</span>, <span class="fn-tag">#coverUrl</span>, <span class="fn-tag">#description</span>), nút Lưu, nút Hủy sửa và nút Gộp thêm tệp JSON.<br>
+                            <a class="jump-link" href="#chi-tiet-nv07">🔍 Xem giải thích Thêm & Sửa sách ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-08</span></td>
+                        <td><span class="file-tag">books.html</span></td>
+                        <td>Khung <span class="fn-tag">#filterToolbarCard</span><br><span class="fn-tag">#searchInput</span>, <span class="fn-tag">#filterStatus</span>, <span class="fn-tag">#filterPriority</span>, <span class="fn-tag">#sortDeadline</span></td>
+                        <td>
+                            <strong>Thanh công cụ Tìm kiếm – Lọc – Sắp xếp:</strong> Cho phép người dùng gõ từ khóa tìm kiếm, lọc theo trạng thái, lọc mức ưu tiên và sắp xếp hạn đọc gần/xa nhất.<br>
+                            <a class="jump-link" href="#chi-tiet-nv05">🔍 Xem giải thích Thuật toán Tìm kiếm & Lọc ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-09</span></td>
+                        <td><span class="file-tag">books.html</span></td>
+                        <td>Khung lưới <span class="fn-tag">#bookGrid</span><br>Huy hiệu <span class="fn-tag">#bookCountBadge</span></td>
+                        <td>
+                            <strong>Khung kệ sách hiển thị các thẻ sách (Card):</strong> Nơi JavaScript đổ danh sách các cuốn sách ra màn hình kèm tổng số cuốn tìm thấy.<br>
+                            <a class="jump-link" href="#chi-tiet-nv06">🔍 Xem giải thích Hàm vẽ thẻ sách renderBooks ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-11</span><br><span class="code-badge group-gd">GD-12</span><br><span class="code-badge group-gd">GD-13</span><br><span class="code-badge group-gd">GD-14</span></td>
+                        <td><span class="file-tag">settings.html</span></td>
+                        <td>Hộp <span class="fn-tag">#themeSelector</span><br>Hộp <span class="fn-tag">#fontSelector</span><br>Hộp <span class="fn-tag">#iconPackSelector</span></td>
+                        <td>
+                            <strong>Khung tùy chỉnh Giao diện, Font chữ & Bộ biểu tượng:</strong> Chứa 3 hộp chọn (<span class="fn-tag">&lt;select&gt;</span>) để đổi 6 giao diện (có Code thuần), 7 kiểu chữ Offline và 3 bộ icon.<br>
+                            <a class="jump-link" href="#chi-tiet-cd01">🔍 Xem giải thích Cơ chế đổi Giao diện/Font/Icon ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-15</span><br><span class="code-badge group-gd">GD-16</span><br><span class="code-badge group-gd">GD-17</span></td>
+                        <td><span class="file-tag">settings.html</span></td>
+                        <td>Ô <span class="fn-tag">#bgUpload</span>, Form <span class="fn-tag">#emailConfigForm</span>, Nút <span class="fn-tag">#btnClearData</span></td>
+                        <td>
+                            <strong>Khung tải Hình nền, Cấu hình EmailJS & Làm trống tủ sách:</strong> Nén ảnh nền cá nhân, lưu 4 thông số EmailJS (<span class="fn-tag">targetEmail</span>, <span class="fn-tag">publicKey</span>, <span class="fn-tag">serviceId</span>, <span class="fn-tag">templateId</span>) và xóa sạch tủ sách.<br>
+                            <a class="jump-link" href="#chi-tiet-email">🔍 Xem giải thích Cấu hình & Gửi EmailJS ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="GD">
+                        <td><span class="code-badge group-gd">GD-18</span><br><span class="code-badge group-gd">GD-19</span></td>
+                        <td><span class="file-tag">Cả 3 tệp HTML</span><br><span class="file-tag">settings.html</span></td>
+                        <td>Khung <span class="fn-tag">#systemStatusBox</span><br>Khung <span class="fn-tag">#boxTestStatusCodes</span></td>
+                        <td>
+                            <strong>Khung hiển thị Mã trạng thái & Ngoại lệ trên màn hình (200, 300, 400, 404, 500):</strong> Thông báo trực quan bằng màu sắc ngay dưới thanh menu và bộ 5 nút bấm kiểm thử lỗi.<br>
+                            <a class="jump-link" href="#chi-tiet-dl08">🔍 Xem giải thích Bắt ngoại lệ 200-500 ⬇</a>
+                        </td>
+                    </tr>
+
+                    <!-- NHÓM THIẾT KẾ CSS (CSS) -->
+                    <tr data-group="CSS">
+                        <td><span class="code-badge group-css">CSS-01</span><br><span class="code-badge group-css">CSS-02</span><br><span class="code-badge group-css">CSS-03</span></td>
+                        <td><span class="file-tag">assets/css/style.css</span></td>
+                        <td>Quy tắc <span class="fn-tag">@font-face</span><br>Biến <span class="fn-tag">--app-font-family</span><br><span class="fn-tag">html[data-font="..."]</span></td>
+                        <td>
+                            <strong>Nạp Font chữ Roboto Offline 100% từ thư mục static:</strong> Khai báo 2 font ưu tiên và các font chi tiết từ <span class="file-tag">assets/fonts/static/</span>, đổi font tức thì qua biến CSS.<br>
+                            <a class="jump-link" href="#chi-tiet-css01">🔍 Xem giải thích @font-face & Biến CSS ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="CSS">
+                        <td><span class="code-badge group-css">CSS-04</span><br><span class="code-badge group-css">CSS-05</span></td>
+                        <td><span class="file-tag">assets/css/style.css</span></td>
+                        <td><span class="fn-tag">html.use-default-icons</span><br><span class="fn-tag">.dynamic-icon</span>, <span class="fn-tag">.default-icon</span></td>
+                        <td>
+                            <strong>Bố cục trang Flexbox & Ẩn/hiện Bộ biểu tượng:</strong> Tự động giấu thẻ <span class="fn-tag">&lt;img&gt;</span> và hiện thẻ <span class="fn-tag">&lt;i&gt;</span> khi người dùng chuyển sang Bộ biểu tượng mặc định của web.<br>
+                            <a class="jump-link" href="#chi-tiet-css04">🔍 Xem giải thích Ẩn/Hiện Icon bằng CSS ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="CSS">
+                        <td><span class="code-badge group-css">CSS-06</span><br><span class="code-badge group-css">CSS-07</span></td>
+                        <td><span class="file-tag">assets/css/style.css</span></td>
+                        <td><span class="fn-tag">.book-card.book-done</span><br><span class="fn-tag">body.has-bg .card</span></td>
+                        <td>
+                            <strong>Đánh dấu Sách đã đọc xong & Hiệu ứng kính mờ:</strong> Tô viền xanh lá + gạch ngang tên sách khi đã đọc xong; làm mờ nền thẻ (<span class="fn-tag">backdrop-filter: blur</span>) khi có ảnh nền.<br>
+                            <a class="jump-link" href="#chi-tiet-css06">🔍 Xem giải thích Trang trí thẻ sách ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="CSS">
+                        <td><span class="code-badge group-css">CSS-08</span><br><span class="code-badge group-css">CSS-09</span></td>
+                        <td><span class="file-tag">assets/css/style.css</span></td>
+                        <td><span class="fn-tag">html.pure-mode</span><br><span class="fn-tag">.status-banner.status-200...500</span></td>
+                        <td>
+                            <strong>Bộ Giao diện Code Thuần (Không Bootstrap) & Màu sắc khung báo lỗi:</strong> Tự chia lưới 12 cột bằng <span class="fn-tag">display: grid</span>, dựng Navbar bằng <span class="fn-tag">flex</span> và tô màu khung trạng thái 200/300/400/404/500.<br>
+                            <a class="jump-link" href="#chi-tiet-css08">🔍 Xem giải thích Giao diện Code Thuần ⬇</a>
+                        </td>
+                    </tr>
+
+                    <!-- NHÓM DỮ LIỆU & DÙNG CHUNG (DL) -->
+                    <tr data-group="DL">
+                        <td><span class="code-badge group-dl">DL-01</span></td>
+                        <td><span class="file-tag">assets/js/main.js</span></td>
+                        <td>Hằng <span class="fn-tag">STORAGE_KEY</span>, <span class="fn-tag">DEFAULT_BOOKS</span><br>Hàm <span class="fn-tag">ghiLogF12()</span></td>
+                        <td>
+                            <strong>Khởi tạo 12 sách mẫu & Hàm in nhật ký F12 (Console):</strong> Chứa cuốn <em>"Hai Con Mèo Ngồi Bên Cửa Sổ"</em> kèm link ảnh và hàm <span class="fn-tag">ghiLogF12</span> in màu sắc ra Console khi bấm mọi nút.<br>
+                            <a class="jump-link" href="#chi-tiet-dl01">🔍 Xem giải thích Hàm ghiLogF12 & Dữ liệu mẫu ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="DL">
+                        <td><span class="code-badge group-dl">DL-02</span><br><span class="code-badge group-dl">DL-03</span><br><span class="code-badge group-dl">DL-04</span></td>
+                        <td><span class="file-tag">assets/js/main.js</span></td>
+                        <td><span class="fn-tag">applySavedTheme()</span><br><span class="fn-tag">applySavedFont()</span><br><span class="fn-tag">applyIconPack()</span></td>
+                        <td>
+                            <strong>Ba hàm đồng bộ Giao diện, Kiểu chữ và Bộ biểu tượng:</strong> Đổi đường dẫn CSS, gán thuộc tính <span class="fn-tag">data-font</span> và cập nhật đường dẫn ảnh <span class="fn-tag">assets/img/bo1/</span> hoặc <span class="fn-tag">bo2/</span>.<br>
+                            <a class="jump-link" href="#chi-tiet-cd01">🔍 Xem giải thích 3 hàm đồng bộ giao diện ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="DL">
+                        <td><span class="code-badge group-dl">DL-05</span><br><span class="code-badge group-dl">DL-06</span></td>
+                        <td><span class="file-tag">assets/js/main.js</span></td>
+                        <td><span class="fn-tag">compressImage()</span><br><span class="fn-tag">getBooks()</span>, <span class="fn-tag">saveBooks()</span></td>
+                        <td>
+                            <strong>Nén ảnh nền bằng Canvas & Đọc/Ghi LocalStorage:</strong> Thu nhỏ ảnh tải lên để không tràn bộ nhớ trình duyệt; đọc/lưu mảng sách dưới dạng chuỗi JSON.<br>
+                            <a class="jump-link" href="#chi-tiet-dl06">🔍 Xem giải thích LocalStorage & Nén ảnh ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="DL">
+                        <td><span class="code-badge group-dl">DL-07</span><br><span class="code-badge group-dl">DL-08</span></td>
+                        <td><span class="file-tag">assets/js/main.js</span></td>
+                        <td><span class="fn-tag">hienThiThongBaoNgoaiLeHTML()</span><br>Sự kiện <span class="fn-tag">Blob</span> & <span class="fn-tag">FileReader</span></td>
+                        <td>
+                            <strong>Xuất/Nhập tệp JSON & Bắt ngoại lệ toàn cục (200-500):</strong> Tải tệp sao lưu về máy, khôi phục từ tệp và tự động bắt lỗi mất mạng (<span class="fn-tag">offline</span>), lỗi code (<span class="fn-tag">window.onerror</span>) hiện lên màn hình.<br>
+                            <a class="jump-link" href="#chi-tiet-dl08">🔍 Xem giải thích Bắt ngoại lệ & Sao lưu JSON ⬇</a>
+                        </td>
+                    </tr>
+
+                    <!-- NHÓM NGHIỆP VỤ SÁCH, BIỂU ĐỒ & EMAIL (NV) -->
+                    <tr data-group="NV">
+                        <td><span class="code-badge group-nv">NV-01</span></td>
+                        <td><span class="file-tag">index.html</span></td>
+                        <td>Logic đếm sách, <span class="fn-tag">new Chart()</span> & <span class="fn-tag">emailjs.send()</span></td>
+                        <td>
+                            <strong>Nghiệp vụ Trang chủ (Thống kê, Biểu đồ & Gửi Email báo cáo):</strong> Đếm số sách theo trạng thái/độ ưu tiên, vẽ biểu đồ tròn và gửi email thống kê qua EmailJS.<br>
+                            <a class="jump-link" href="#chi-tiet-email">🔍 Xem giải thích Gửi EmailJS & Biểu đồ ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="NV">
+                        <td><span class="code-badge group-nv">NV-03</span></td>
+                        <td><span class="file-tag">assets/js/books.js</span></td>
+                        <td><span class="fn-tag">createOfflineCoverSVG()</span><br><span class="fn-tag">xuLyLoiAnhBia()</span></td>
+                        <td>
+                            <strong>Tự vẽ ảnh bìa SVG Offline & Chuyển hướng dự phòng (Mã 300):</strong> Khi sách không có link ảnh hoặc link ảnh bị lỗi 404/mất mạng, tự động vẽ bìa vector có tên sách và tác giả.<br>
+                            <a class="jump-link" href="#chi-tiet-nv03">🔍 Xem giải thích Tự vẽ bìa SVG Offline ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="NV">
+                        <td><span class="code-badge group-nv">NV-04</span></td>
+                        <td><span class="file-tag">assets/js/books.js</span></td>
+                        <td><span class="fn-tag">validateBookForm()</span><br><span class="fn-tag">clearErrors()</span></td>
+                        <td>
+                            <strong>Kiểm tra dữ liệu đầu vào (Validation - Mã 400):</strong> Bắt lỗi Tên sách rỗng, Tác giả rỗng, Ngày đọc xong nhỏ hơn hôm nay, Mô tả ngắn hơn 10 ký tự.<br>
+                            <a class="jump-link" href="#chi-tiet-nv04">🔍 Xem giải thích Kiểm tra lỗi nhập liệu ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="NV">
+                        <td><span class="code-badge group-nv">NV-05</span><br><span class="code-badge group-nv">NV-06</span></td>
+                        <td><span class="file-tag">assets/js/books.js</span></td>
+                        <td><span class="fn-tag">getFilteredAndSortedBooks()</span><br><span class="fn-tag">renderBooks()</span></td>
+                        <td>
+                            <strong>Kết hợp Tìm kiếm + Lọc + Sắp xếp & Vẽ kệ sách:</strong> Dùng <span class="fn-tag">.filter()</span> lọc đồng thời 3 điều kiện, dùng <span class="fn-tag">.sort()</span> xếp hạn đọc và dùng <span class="fn-tag">.map()</span> sinh HTML thẻ sách.<br>
+                            <a class="jump-link" href="#chi-tiet-nv05">🔍 Xem giải thích Tìm kiếm, Lọc & Sắp xếp ⬇</a>
+                        </td>
+                    </tr>
+                    <tr data-group="NV">
+                        <td><span class="code-badge group-nv">NV-07</span><br><span class="code-badge group-nv">NV-08</span><br><span class="code-badge group-nv">NV-09</span></td>
+                        <td><span class="file-tag">assets/js/books.js</span></td>
+                        <td><span class="fn-tag">toggleBookDone()</span>, <span class="fn-tag">startEditBook()</span>, <span class="fn-tag">deleteBook()</span></td>
+                        <td>
+                            <strong>Thao tác CRUD (Thêm, Sửa, Xóa có xác nhận & Đánh dấu đọc xong 1 chạm):</strong> Xử lý toàn bộ nút bấm trên từng thẻ sách và nút gộp thêm tệp JSON.<br>
+                            <a class="jump-link" href="#chi-tiet-nv07">🔍 Xem giải thích CRUD & Đánh dấu đọc xong ⬇</a>
+                        </td>
+                    </tr>
+
+                    <!-- NHÓM CÀI ĐẶT & KIỂM THỬ MÃ TRẠNG THÁI (CD) -->
+                    <tr data-group="CD">
+                        <td><span class="code-badge group-cd">CD-01</span> đến <span class="code-badge group-cd">CD-07</span></td>
+                        <td><span class="file-tag">assets/js/settings.js</span></td>
+                        <td>Sự kiện <span class="fn-tag">change</span>, <span class="fn-tag">[data-test-code]</span>, <span class="fn-tag">#btnRestoreSample</span></td>
+                        <td>
+                            <strong>Xử lý lưu Cài đặt, Nạp lại 12 sách mẫu & Bộ nút mô phỏng lỗi 200/300/400/404/500:</strong> Giúp kiểm thử trực tiếp mọi mã trạng thái ngay trên màn hình.<br>
+                            <a class="jump-link" href="#chi-tiet-cd01">🔍 Xem giải thích Trang Tùy chỉnh & Test lỗi ⬇</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PHẦN 2: GIẢI THÍCH CÚ PHÁP CƠ BẢN CHO THÀNH VIÊN MỚI / CÒN KÉM CODE -->
+        <h2 class="section-title" id="giai-thich-cu-phap">
+            <span>2. Giải Thích Chi Tiết Cú Pháp HTML / CSS / JS (Dành Cho Người Mới Học)</span>
+            <a class="back-top-btn" href="#bang-tra-cuu">⬆ Quay lại Bảng tra cứu</a>
+        </h2>
+
+        <div class="detail-grid">
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    <h3>2.1. Vì sao trong CSS và JS lúc dùng dấu <code>#</code>, lúc dùng dấu <code>.</code>, lúc dùng <code>[...]</code>?</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong>Dấu thăng <code>#</code> (Chọn theo <code>id</code> - Duy nhất):</strong> Trong HTML, mỗi phần tử quan trọng chỉ có 1 mã <code>id</code> duy nhất (giống như số căn cước công dân). Ví dụ: <code>&lt;div id="bookGrid"&gt;</code>. Khi viết CSS hoặc tìm trong JS, ta dùng <code>#bookGrid</code> để chỉ đích danh khung kệ sách đó.</li>
+                    <li><strong>Dấu chấm <code>.</code> (Chọn theo <code>class</code> - Nhóm nhiều phần tử):</strong> Nhiều thẻ HTML có thể dùng chung 1 <code>class</code> để có cùng kiểu trang trí (giống như mặc đồng phục). Ví dụ: 12 cuốn sách đều có <code>class="book-card"</code>. Trong CSS viết <code>.book-card { border-radius: 16px; }</code> thì cả 12 thẻ sách đều được bo tròn góc.</li>
+                    <li><strong>Dấu ngoặc vuông <code>[thuộc_tính]</code> (Chọn theo thuộc tính tùy chỉnh):</strong> Ví dụ <code>html[data-font="priority-bold"]</code> nghĩa là: "Khi thẻ <code>&lt;html&gt;</code> đang mang thuộc tính <code>data-font</code> có giá trị là <code>priority-bold</code> thì áp dụng font chữ đậm".</li>
+                    <li><strong>Dấu hai chấm <code>:root</code>, <code>:hover</code>:</strong>
+                        <ul>
+                            <li><code>:root</code> là gốc của trang web (thẻ <code>&lt;html&gt;</code>), dùng để đặt biến dùng chung như <code>--app-font-family</code>.</li>
+                            <li><code>:hover</code> là hiệu ứng khi người dùng rê con trỏ chuột lên nút bấm hoặc thẻ sách.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    <h3>2.2. Vì sao trong JavaScript lúc dùng <code>const</code>, lúc dùng <code>let</code>, lúc dùng <code>function</code>?</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong>Từ khóa <code>const</code> (Hằng số / Tham chiếu cố định):</strong> Dùng khi biến đó chỉ gắn vào 1 phần tử cố định và không bao giờ gán lại bằng thứ khác. Ví dụ: <code>const bookGrid = document.getElementById('bookGrid');</code> (Khung kệ sách luôn là khung đó suốt quá trình chạy).</li>
+                    <li><strong>Từ khóa <code>let</code> (Biến có thể thay đổi giá trị):</strong> Dùng khi giá trị bên trong cần cộng thêm hoặc thay đổi liên tục. Ví dụ ở Trang chủ: <code>let readCount = 0;</code> sau đó mỗi lần gặp sách đã đọc thì tăng lên 1 (<code>readCount++</code>). Nếu dùng <code>const</code> ở đây thì trình duyệt sẽ báo lỗi ngay vì <code>const</code> không cho phép cộng thêm!</li>
+                    <li><strong>Hàm <code>function tenHam(thamSo) { ... }</code> và Hàm mũi tên <code>(thamSo) => { ... }</code>:</strong>
+                        <ul>
+                            <li>Cả hai đều là gom một nhóm câu lệnh lại để tái sử dụng nhiều lần.</li>
+                            <li><code>function getBooks() {...}</code> là cách viết truyền thống, dễ gọi ở bất cứ đâu.</li>
+                            <li><code>books.forEach(b => { ... })</code> là hàm mũi tên (Arrow Function trong chuẩn ES6+), giúp viết ngắn gọn khi truyền hàm vào trong các thao tác duyệt mảng hoặc bắt sự kiện click chuột.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    <h3>2.3. Các hàm xử lý mảng trong JavaScript (<code>forEach</code>, <code>filter</code>, <code>sort</code>, <code>map</code>, <code>find</code>) làm gì?</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong><code>.forEach(b => ...)</code> (Duyệt qua từng phần tử):</strong> Giống như đi điểm danh từng cuốn sách từ đầu kệ đến cuối kệ để đếm số lượng.</li>
+                    <li><strong><code>.filter(b => điều_kiện)</code> (Lọc danh sách):</strong> Tạo ra một danh sách mới chỉ giữ lại những cuốn sách trả về kết quả <code>true</code> (Đúng). Dùng trong hàm <code>getFilteredAndSortedBooks()</code> để lọc theo từ khóa, trạng thái và mức độ ưu tiên.</li>
+                    <li><strong><code>.sort((a, b) => ...)</code> (Sắp xếp thứ tự):</strong> Đổi chỗ 2 cuốn sách <code>a</code> và <code>b</code> dựa trên hiệu số ngày hạn đọc (<code>new Date(a.deadline) - new Date(b.deadline)</code>) để xếp cuốn nào cần đọc gấp lên trước.</li>
+                    <li><strong><code>.map(book => `...HTML...`).join('')</code> (Biến dữ liệu thành giao diện):</strong> Biến mỗi đối tượng sách trong mảng thành một đoạn mã HTML thẻ sách (Card), sau đó <code>.join('')</code> nối tất cả lại thành 1 chuỗi HTML dài để đổ vào <code>bookGrid.innerHTML</code>.</li>
+                    <li><strong><code>.find(b => b.id === id)</code> & <code>.findIndex(...)</code>:</strong> Tìm đúng cuốn sách (hoặc vị trí cuốn sách) có mã ID trùng với nút Sửa/Xóa mà người dùng vừa bấm.</li>
+                </ul>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    <h3>2.4. Cú pháp HTML & Giao tiếp trình duyệt (<code>localStorage</code>, <code>JSON</code>, <code>try...catch</code>)</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong>Tại sao phải dùng <code>JSON.stringify()</code> và <code>JSON.parse()</code> khi lưu vào <code>localStorage</code>?</strong>
+                        Vì bộ nhớ <code>localStorage</code> của trình duyệt chỉ biết lưu chữ văn bản (String), không lưu trực tiếp được mảng đối tượng JavaScript. Do đó:
+                        <ul>
+                            <li>Khi lưu: Phải dùng <code>JSON.stringify(booksArray)</code> để biến mảng sách thành chuỗi văn bản.</li>
+                            <li>Khi đọc lên: Phải dùng <code>JSON.parse(rawData)</code> để biến chuỗi văn bản ngược lại thành mảng sách.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Tại sao dùng <code>try { ... } catch (e) { ... }</code>?</strong>
+                        Để "bọc lót" các đoạn code có nguy cơ gây lỗi (như đọc tệp JSON người dùng tải lên bị sai cú pháp, hoặc bộ nhớ trình duyệt bị đầy). Nếu có lỗi xảy ra trong khối <code>try</code>, chương trình không bị đơ mà nhảy xuống khối <code>catch</code> để hiện thông báo màu đỏ lên khung <code>#systemStatusBox</code>.</li>
+                    <li><strong>Thuộc tính <code>data-*</code> (Ví dụ <code>data-icon="logo.png"</code>, <code>data-test-code="200"</code>):</strong>
+                        Là chuẩn HTML5 cho phép ta gắn thêm thông tin phụ vào thẻ HTML để JavaScript đọc lên bằng <code>getAttribute('data-icon')</code>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- PHẦN 3: GIẢI THÍCH CHI TIẾT TỪNG MÃ CODE & NGHIỆP VỤ -->
+        <h2 class="section-title" id="giai-thich-nghiep-vu">
+            <span>3. Giải Thích Chi Tiết Từng Nghiệp Vụ & Mã Đánh Dấu Trong Dự Án</span>
+            <a class="back-top-btn" href="#bang-tra-cuu">⬆ Quay lại Bảng tra cứu</a>
+        </h2>
+
+        <div class="detail-grid">
+            <!-- CHI TIẾT XỬ LÝ EMAIL -->
+            <div class="detail-card" id="chi-tiet-email">
+                <div class="detail-card-header">
+                    <h3>[GD-05, GD-16, NV-01, CD-06] Chi tiết nghiệp vụ Cấu hình & Gửi báo cáo qua EmailJS</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong>Tệp liên quan:</strong> <code>settings.html</code>, <code>assets/js/settings.js</code>, <code>index.html</code>, <code>vendor/emailjs/email.min.js</code>.</li>
+                    <li><strong>Bước 1 – Lưu thông số cấu hình ở trang Tùy chỉnh (<code>CD-06</code>):</strong>
+                        Người dùng nhập 4 ô: Email nhận (<code>#targetEmail</code>), Mã công khai (<code>#emailPublicKey</code>), Mã dịch vụ (<code>#emailServiceId</code>), Mã mẫu thư (<code>#emailTemplateId</code>). Khi bấm Lưu, code kiểm tra xem email có ký tự <code>@</code> không (nếu thiếu thì báo Mã 400), sau đó đóng gói thành JSON lưu vào <code>localStorage.setItem('emailConfig', ...)</code>.
+                    </li>
+                    <li><strong>Bước 2 – Kiểm tra điều kiện trước khi gửi ở Trang chủ (<code>NV-01</code>):</strong>
+                        Khi bấm nút <code>#btnSendReport</code>:
+                        <div class="code-snippet">if (!navigator.onLine) { /* Báo lỗi Mã 500 Offline */ return; }
+if (books.length === 0) { /* Báo lỗi Mã 400 Tủ sách trống */ return; }</div>
+                        Nếu chưa cài đặt <code>emailConfig</code>, hệ thống hiện thông báo Mã 300 và tự chuyển hướng sang <code>settings.html</code>.
+                    </li>
+                    <li><strong>Bước 3 – Gọi API thư viện EmailJS để gửi thư:</strong>
+                        <div class="code-snippet">emailjs.init(emailConfig.publicKey);
+emailjs.send(emailConfig.serviceId, emailConfig.templateId, {
+    to_email: emailConfig.targetEmail,
+    total_books: books.length,
+    read_books: readCount,
+    unread_books: unreadCount,
+    time: new Date().toLocaleString('vi-VN')
+}).then(response => { /* Báo Mã 200 Thành công */ })
+  .catch(err => { /* Báo Mã 500 Lỗi xác thực Key/ID */ });</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- CHI TIẾT THỐNG KÊ & BIỂU ĐỒ -->
+            <div class="detail-card" id="chi-tiet-nv01">
+                <div class="detail-card-header">
+                    <h3>[GD-03, GD-04, NV-01] Chi tiết nghiệp vụ Đếm thống kê & Vẽ biểu đồ Chart.js</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong>Tệp liên quan:</strong> <code>index.html</code>, <code>vendor/chartjs/chart.umd.js</code>.</li>
+                    <li><strong>Cách tính toán số liệu:</strong> Gọi <code>const books = getBooks();</code> để lấy mảng sách từ LocalStorage. Khởi tạo các biến đếm bằng <code>let</code> (<code>readCount</code>, <code>unreadCount</code>, <code>highCount</code>, <code>mediumCount</code>, <code>lowCount</code>). Duyệt qua từng cuốn sách bằng <code>books.forEach(...)</code> để cộng dồn số lượng và gán lên giao diện qua <code>innerText</code>.</li>
+                    <li><strong>Cách vẽ biểu đồ tròn (Doughnut Chart):</strong>
+                        Nếu <code>books.length === 0</code> thì hiện khung trống mời thêm sách (Mã 300). Nếu có sách thì truyền thẻ <code>&lt;canvas id="bookChart"&gt;</code> vào hàm khởi tạo <code>new Chart(ctx, {...})</code> với kiểu <code>type: 'doughnut'</code>, độ rỗng tâm <code>cutout: '70%'</code> và 2 màu Xanh lá (<code>#198754</code> - Đã đọc) / Vàng (<code>#ffc107</code> - Đang & Chưa đọc).</li>
+                </ul>
+            </div>
+
+            <!-- CHI TIẾT ĐỒNG BỘ NHANH GD-01 & CÀI ĐẶT CD-01 -->
+            <div class="detail-card" id="chi-tiet-gd01">
+                <div class="detail-card-header">
+                    <h3>[GD-01, DL-02, DL-03, DL-04, CD-01] Cơ chế đổi Giao diện, Font chữ & Bộ biểu tượng</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <div id="chi-tiet-cd01"></div>
+                <ul>
+                    <li><strong>Vì sao phải đặt đoạn script <code>(function(){...})()</code> ngay trong thẻ <code>&lt;head&gt;</code> (<code>GD-01</code>)?</strong>
+                        Trình duyệt đọc file HTML từ trên xuống dưới. Nếu đợi tải xong hết trang mới đổi màu giao diện thì màn hình sẽ bị chớp trắng 1 giây. Đặt hàm tự chạy IIFE ngay trên <code>&lt;head&gt;</code> giúp gán đúng file CSS giao diện và kiểu chữ ngay trước khi thẻ <code>&lt;body&gt;</code> hiển thị.</li>
+                    <li><strong>Cách bật Giao diện Code Thuần (<code>applySavedTheme</code>):</strong>
+                        Khi <code>savedTheme === 'pure'</code>, lệnh <code>linkElement.removeAttribute('href')</code> sẽ ngắt hoàn toàn thư viện Bootstrap và lệnh <code>document.documentElement.classList.add('pure-mode')</code> sẽ kích hoạt bộ CSS Grid/Flexbox tự viết trong <code>style.css</code>.</li>
+                    <li><strong>Cách đổi Bộ biểu tượng <code>bo1</code>, <code>bo2</code> và <code>bo4</code> (<code>applyIconPack</code>):</strong>
+                        Quét tất cả thẻ <code>&lt;img class="dynamic-icon" data-icon="..."&gt;</code> và gán đường dẫn <code>assets/img/bo1/...</code> hoặc <code>assets/img/bo2/...</code>. Nếu chọn <code>bo4</code> (Bộ mặc định web) thì gắn class <code>use-default-icons</code> để ẩn ảnh PNG và hiện icon Bootstrap.</li>
+                </ul>
+            </div>
+
+            <!-- CHI TIẾT KIỂM TRA LỖI VALIDATION NV-04 -->
+            <div class="detail-card" id="chi-tiet-nv04">
+                <div class="detail-card-header">
+                    <h3>[NV-04] Chi tiết hàm Kiểm tra dữ liệu đầu vào <code>validateBookForm()</code></h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong>Tệp liên quan:</strong> <code>books.html</code>, <code>assets/js/books.js</code>.</li>
+                    <li><strong>Vì sao thẻ <code>&lt;form id="bookForm" novalidate&gt;</code> có chữ <code>novalidate</code>?</strong>
+                        Để tắt bong bóng báo lỗi mặc định bằng tiếng Anh của trình duyệt và dùng hoàn toàn hàm kiểm tra tiếng Việt <code>validateBookForm()</code> do nhóm tự viết.</li>
+                    <li><strong>4 điều kiện bắt lỗi bắt buộc:</strong>
+                        <ul>
+                            <li><code>!titleInput.value.trim()</code>: Dùng <code>.trim()</code> cắt bỏ khoảng trắng thừa 2 đầu, nếu chuỗi rỗng thì báo lỗi dưới ô Tên sách.</li>
+                            <li><code>!authorInput.value.trim()</code>: Kiểm tra tên tác giả không được để trống.</li>
+                            <li><code>selectedDate &lt; today</code>: Đưa giờ của ngày hôm nay về <code>00:00:00</code> (<code>today.setHours(0,0,0,0)</code>) rồi so sánh với ngày dự kiến đọc xong. Nếu nhỏ hơn hôm nay thì chặn lại.</li>
+                            <li><code>descriptionInput.value.trim().length &lt; 10</code>: Đếm số ký tự mô tả cảm nhận, bắt buộc từ 10 ký tự trở lên theo đúng đề bài.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- CHI TIẾT TÌM KIẾM LỌC SẮP XẾP NV-05 & RENDER NV-06 -->
+            <div class="detail-card" id="chi-tiet-nv05">
+                <div class="detail-card-header">
+                    <h3>[GD-08, GD-09, NV-05, NV-06] Thuật toán Tìm kiếm + Lọc + Sắp xếp kết hợp & Vẽ kệ sách</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <div id="chi-tiet-nv06"></div>
+                <ul>
+                    <li><strong>Kết hợp nhiều điều kiện lọc cùng lúc (<code>getFilteredAndSortedBooks</code>):</strong>
+                        Chuyển từ khóa tìm kiếm về chữ thường bằng <code>.toLowerCase()</code>. Một cuốn sách chỉ được giữ lại khi thỏa mãn đồng thời cả 3 biến (<code>matchKeyword && matchStatus && matchPriority</code>). Nhờ vậy người dùng vừa gõ tên tác giả "Nguyễn Nhật Ánh", vừa chọn lọc trạng thái "Đang đọc", vừa chọn mức ưu tiên "Cao" cùng lúc đều ra kết quả chính xác.</li>
+                    <li><strong>Sắp xếp theo hạn đọc (<code>.sort</code>):</strong>
+                        Nếu chọn <code>asc</code> (Gần nhất trước), lấy <code>new Date(a.deadline) - new Date(b.deadline)</code>. Nếu chọn <code>desc</code> (Xa nhất trước), đảo ngược phép trừ lại.</li>
+                </ul>
+            </div>
+
+            <!-- CHI TIẾT CRUD & TOGGLE DONE NV-07, NV-08 -->
+            <div class="detail-card" id="chi-tiet-nv07">
+                <div class="detail-card-header">
+                    <h3>[GD-07, NV-07, NV-08] Nghiệp vụ Thêm, Sửa, Xóa sách & Đánh dấu đọc xong 1 chạm</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <ul>
+                    <li><strong>Làm sao phân biệt khi nào bấm Lưu là "Thêm mới", khi nào là "Cập nhật sách đang sửa"?</strong>
+                        Nhờ ô ẩn <code>&lt;input type="hidden" id="bookId"&gt;</code>. Bình thường ô này rỗng (<code>""</code>) -> Bấm Lưu sẽ tạo ID mới bằng <code>Date.now().toString()</code> và đẩy sách mới lên đầu mảng bằng <code>allBooks.unshift(bookData)</code>. Khi bấm nút <strong>Sửa</strong> trên thẻ sách, hàm <code>startEditBook(id)</code> sẽ điền ID của cuốn sách đó vào ô ẩn <code>#bookId</code> -> Lúc bấm Lưu, code thấy <code>#bookId</code> có giá trị nên tìm đúng vị trí cuốn sách đó bằng <code>findIndex</code> để ghi đè thông tin mới.</li>
+                    <li><strong>Đánh dấu đọc xong 1 chạm (<code>toggleBookDone</code>):</strong>
+                        Tìm cuốn sách theo ID rồi dùng toán tử 3 ngôi: <code>book.status = (book.status === 'Đã đọc') ? 'Đang đọc' : 'Đã đọc';</code> sau đó lưu lại và vẽ lại kệ sách ngay lập tức.</li>
+                </ul>
+            </div>
+
+            <!-- CHI TIẾT TỰ VẼ BÌA SVG NV-03 & BẮT LỖI DL-08 -->
+            <div class="detail-card" id="chi-tiet-nv03">
+                <div class="detail-card-header">
+                    <h3>[GD-18, DL-08, NV-03] Tự vẽ bìa sách SVG Offline & Bắt ngoại lệ 200, 300, 400, 404, 500</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <div id="chi-tiet-dl08"></div>
+                <div id="chi-tiet-dl07"></div>
+                <div id="chi-tiet-dl06"></div>
+                <div id="chi-tiet-dl01"></div>
+                <ul>
+                    <li><strong>Cơ chế tự vẽ bìa sách Offline (<code>createOfflineCoverSVG</code>):</strong>
+                        Thay vì gọi ảnh mặc định trên mạng (sẽ bị rách ảnh khi rớt mạng), hàm này tạo một tấm ảnh đồ họa Vector (<code>&lt;svg&gt;</code>) có nền chuyển sắc xanh đậm và in trực tiếp tên cuốn sách + tên tác giả lên giữa bìa, mã hóa thành chuỗi <code>data:image/svg+xml;charset=UTF-8,...</code>.</li>
+                    <li><strong>Tự động bắt lỗi ảnh hỏng (<code>onerror="xuLyLoiAnhBia(...)"</code>):</strong>
+                        Khi đường dẫn URL ảnh bìa bị lỗi 404 hoặc mất mạng, sự kiện <code>onerror</code> của thẻ <code>&lt;img&gt;</code> tự động kích hoạt hàm <code>xuLyLoiAnhBia</code>, đổi <code>img.src</code> sang bìa SVG dự phòng và đẩy thông báo <strong>MÃ 300</strong> lên khung <code>#systemStatusBox</code> trên màn hình.</li>
+                    <li><strong>Khung thông báo mã trạng thái trên giao diện (<code>hienThiThongBaoNgoaiLeHTML</code>):</strong>
+                        Đổi class màu sắc trực tiếp trên thẻ <code>#systemStatusBox</code>: <code>.status-200</code> (Xanh lá - Thành công), <code>.status-300</code> (Xanh dương - Chuyển hướng dự phòng), <code>.status-400</code> (Cam - Lỗi nhập liệu), <code>.status-404</code> / <code>.status-500</code> (Đỏ - Không tìm thấy / Mất kết nối).</li>
+                </ul>
+            </div>
+
+            <!-- CHI TIẾT CSS FONT, FLEXBOX & PURE MODE -->
+            <div class="detail-card" id="chi-tiet-css01">
+                <div class="detail-card-header">
+                    <h3>[CSS-01 đến CSS-08] Giải thích chi tiết Nạp Font Local, Flexbox & Giao diện Code Thuần</h3>
+                    <a class="back-top-btn" href="#bang-tra-cuu">⬆ Bảng tra cứu</a>
+                </div>
+                <div id="chi-tiet-css04"></div>
+                <div id="chi-tiet-css06"></div>
+                <div id="chi-tiet-css08"></div>
+                <ul>
+                    <li><strong>Nạp Font chữ Offline bằng <code>@font-face</code> (<code>CSS-01, CSS-02</code>):</strong>
+                        Trỏ đường dẫn <code>src: url('../fonts/static/Roboto_Condensed-Light.ttf')</code> trực tiếp vào thư mục <code>assets/fonts/static/</code> có sẵn trong máy tính, giúp trang web không cần gọi Google Fonts trên mạng mà vẫn đổi được 7 kiểu chữ khác nhau.</li>
+                    <li><strong>Tại sao <code>html.pure-mode .row</code> dùng <code>display: grid; grid-template-columns: repeat(12, 1fr);</code> (<code>CSS-08</code>)?</strong>
+                        Để tự xây dựng lại hệ thống chia 12 cột giống hệt Bootstrap bằng CSS thuần. Ví dụ class <code>.col-md-4</code> chiếm 4 phần (<code>grid-column: span 4</code> -> tạo ra 3 cột đều nhau trên 1 hàng 12 phần). Khi màn hình nhỏ hơn 768px (<code>@media (max-width: 768px)</code>), mọi cột đều chuyển thành <code>grid-column: span 12</code> để xếp chồng dọc gọn gàng trên điện thoại.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <a href="#bang-tra-cuu" class="floating-back-btn">⬆ Về Bảng Tra Cứu</a>
+
+    <script>
+        let currentGroup = 'ALL';
+        const searchInput = document.getElementById('QuickSearch');
+        const rows = document.querySelectorAll('#guideTableBody tr');
+
+        function applyTableFilter() {
+            const keyword = searchInput.value.trim().toLowerCase();
+            rows.forEach(row => {
+                const matchGroup = (currentGroup === 'ALL') || (row.getAttribute('data-group') === currentGroup);
+                const matchText = !keyword || row.innerText.toLowerCase().includes(keyword);
+                row.style.display = (matchGroup && matchText) ? '' : 'none';
+            });
+        }
+
+        function filterGroup(group, btnEl) {
+            currentGroup = group;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            applyTableFilter();
+        }
+
+        searchInput.addEventListener('input', applyTableFilter);
+    </script>
+</body>
+</html>

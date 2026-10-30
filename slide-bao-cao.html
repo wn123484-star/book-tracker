@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Báo Cáo Giữa Kỳ (16:9) - Tủ Sách Cá Nhân</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f1f5f9; /* Nền xám rất nhạt */
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+        }
+        /* Thanh điều khiển phía trên */
+        .presenter-ControlBar {
+            width: 100%;
+            max-width: 1280px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .bar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .bar-title {
+            font-weight: 800;
+            font-size: 1rem;
+            color: #2563eb;
+            margin-right: 8px;
+        }
+        .ctrl-btn {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .ctrl-btn.btn-zip {
+            background: #2563eb;
+            border-color: #1d4ed8;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .ctrl-btn.btn-zip:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); }
+
+        .slide-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+        .dot-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 0.84rem;
+            cursor: pointer;
+        }
+        .dot-btn.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        /* Khung trình chiếu chuẩn tỷ lệ 16:9 */
+        .stage-wrapper {
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+        }
+
+        .slide-item {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 48px 60px;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            background: linear-gradient(135deg, #fdfbfb 0%, #f1f5f9 100%);
+            color: #1e293b;
+        }
+        .slide-item.active { display: flex; }
+
+        /* Trang trí góc slide */
+        .slide-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 14px;
+        }
+        .uni-tag {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .page-num {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .slide-heading {
+            font-size: 2.3rem;
+            font-weight: 800;
+            line-height: 1.25;
+            margin: 14px 0 8px;
+            color: #1e3a8a; /* Xanh đậm sang trọng */
+        }
+        .slide-subtitle {
+            font-size: 1.15rem;
+            color: #475569;
+            margin-bottom: 18px;
+        }
+
+        .slide-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; align-items: stretch; margin-top: 10px; }
+        .slide-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; flex: 1; align-items: stretch; margin-top: 10px; }
+        
+        .glass-box {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 22px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+            border-left: 6px solid #3b82f6; /* Viền trái màu xanh làm điểm nhấn */
+        }
+        /* Phối màu cho các box khác nhau để slide thêm màu sắc */
+        .slide-grid-2 .glass-box:nth-child(2) { border-left-color: #10b981; } /* Xanh ngọc */
+        .slide-grid-3 .glass-box:nth-child(2) { border-left-color: #10b981; }
+        .slide-grid-3 .glass-box:nth-child(3) { border-left-color: #8b5cf6; } /* Tím */
+
+        .glass-box h3 {
+            font-size: 1.2rem;
+            color: #0f172a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .glass-box ul { padding-left: 20px; }
+        .glass-box li {
+            font-size: 1rem;
+            line-height: 1.55;
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        /* Danh sách thành viên (Hiện đại, tối giản nhưng nổi bật text) */
+        .member-pills {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .member-item {
+            text-align: center;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .member-name {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #1e3a8a;
+        }
+        .member-role {
+            font-size: 0.9rem;
+            color: #0284c7;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 12px;
+            font-size: 0.86rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Chế độ xem tất cả 8 slide cùng lúc */
+        body.grid-mode .stage-wrapper {
+            aspect-ratio: auto;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        body.grid-mode .slide-item {
+            display: flex !important;
+            aspect-ratio: 16 / 9;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            padding: 28px 32px;
+            font-size: 0.8em;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        body.grid-mode .slide-heading { font-size: 1.45rem; margin-top: 0;}
+    </style>
+</head>
+<body>
+
+    <div class="presenter-ControlBar">
+        <div class="bar-left">
+            <span class="bar-title">SLIDE BÁO CÁO</span>
+            <button class="ctrl-btn" onclick="prevSlide()">Slide trước</button>
+            <div class="slide-dots" id="slideDots"></div>
+            <button class="ctrl-btn" onclick="nextSlide()">Slide tiếp</button>
+            <button class="ctrl-btn" onclick="toggleGridMode()" id="btnGridToggle">Xem lưới</button>
+            <button class="ctrl-btn" onclick="toggleFullScreen()">Toàn màn hình</button>
+        </div>
+        <div>
+            <button class="ctrl-btn btn-zip" id="btnDownloadSlideZip" onclick="exportAllSlidesToZip()">
+                Tải tệp ZIP ảnh (16:9 PNG)
+            </button>
+        </div>
+    </div>
+
+    <!-- KHUNG TRÌNH CHIẾU -->
+    <div class="stage-wrapper" id="slideStage">
+
+        <!-- SLIDE 1 -->
+        <section class="slide-item active" data-slide-index="1">
+            <div class="slide-top-bar">
+                <span class="uni-tag">TRƯỜNG ĐẠI HỌC CMC • KHOA CNTT & TT</span>
+                <span class="page-num">Slide 01 / 08</span>
+            </div>
+            <div>
+                <p class="slide-subtitle">BÁO CÁO BÀI TẬP GIỮA KỲ • HỌC PHẦN PHÁT TRIỂN ỨNG DỤNG WEB</p>
+                <h1 class="slide-heading" style="font-size: 2.75rem;">ỨNG DỤNG QUẢN LÝ TỦ SÁCH CÁ NHÂN<br>(PERSONAL BOOK TRACKER)</h1>
+                <p style="color: #334155; font-size: 1.08rem; max-width: 850px; margin-bottom: 18px; line-height: 1.6;">
+                    Giải pháp quản lý việc đọc sách cá nhân trực quan, hỗ trợ đầy đủ CRUD, Tìm kiếm – Lọc – Sắp xếp đa điều kiện, Kiểm tra dữ liệu, Cá nhân hóa giao diện.
+                </p>
+                
+                <div class="member-pills">
+                    <div class="member-item">
+                        <div class="member-name">Nguyễn Hưng</div>
+                        <div class="member-role">Trưởng nhóm</div>
+                    </div>
+                    <div class="member-item">
+                        <div class="member-name">Phạm Quang Huy</div>
+                        <div class="member-role">Thành viên nhóm</div>
+                    </div>
+                    <div class="member-item">
+                        <div class="member-name">Đỗ Thị Huyền</div>
+                        <div class="member-role">Thành viên nhóm</div>
+                    </div>
+                    <div class="member-item">
+                        <div class="member-name">Lê Hoàng Lâm</div>
+                        <div class="member-role">Thành viên nhóm</div>
+                    </div>
+                    <div class="member-item">
+                        <div class="member-name">Nguyễn Anh kiệt</div>
+                        <div class="member-role">Thành viên nhóm</div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="slide-footer">
+                <span>Đề tài: Quản lý sách cá nhân (Book Tracker)</span>
+                <span>Hà Nội – Năm 2026</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 2 -->
+        <section class="slide-item" data-slide-index="2">
+            <div class="slide-top-bar">
+                <span class="uni-tag">PHẦN 1 • MÔ TẢ ĐỀ BÀI & CÔNG NGHỆ SỬ DỤNG</span>
+                <span class="page-num">Slide 02 / 08</span>
+            </div>
+            <div>
+                <h2 class="slide-heading">1. Giới Thiệu Bài Toán & Yêu Cầu Đề Bài</h2>
+                <p class="slide-subtitle">Xây dựng website quản lý có đầy đủ CRUD, tìm kiếm/lọc, lưu trữ LocalStorage và giao diện Responsive</p>
+            </div>
+            <div class="slide-grid-2">
+                <div class="glass-box">
+                    <h3>Mục tiêu & Yêu cầu cốt lõi của đề bài</h3>
+                    <ul>
+                        <li><strong>Bài toán thực tế:</strong> Giúp người đọc theo dõi danh sách sách cá nhân, đặt hạn hoàn thành, phân loại mức độ ưu tiên và ghi chú cảm nhận.</li>
+                        <li><strong>Cấu trúc tối thiểu 3 trang:</strong> Trang chủ thống kê, Kệ sách cá nhân và Trang tùy chỉnh.</li>
+                        <li><strong>Đầy đủ 6 trường dữ liệu:</strong> Mã sách, Tên sách, Tác giả, Mô tả cảm nhận (&ge; 10 ký tự), Hạn đọc xong và Mức độ ưu tiên.</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>Công nghệ & Thư viện được phép sử dụng</h3>
+                    <ul>
+                        <li><strong>Nền tảng bắt buộc:</strong> HTML5 ngữ nghĩa, CSS3 (Flexbox, CSS Grid) và JavaScript thuần chuẩn ES6+.</li>
+                        <li><strong>Giao diện kép linh hoạt:</strong> Tích hợp 5 chủ đề Bootstrap 5 <strong>kèm 1 Bộ giao diện Code Thuần tự thiết kế 100%</strong>.</li>
+                        <li><strong>Thư viện hỗ trợ:</strong> Chart.js, SweetAlert2 và EmailJS.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Nhóm thực hiện: Hưng • Huy • Huyền • Lê Hoàng Lâm • Nguyễn Anh kiệt</span>
+                <span>Bám sát 100% tiêu chí đề bài</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 3 -->
+        <section class="slide-item" data-slide-index="3">
+            <div class="slide-top-bar">
+                <span class="uni-tag">PHẦN 2 • KIẾN TRÚC GIAO DIỆN & ĐIỀU HƯỚNG</span>
+                <span class="page-num">Slide 03 / 08</span>
+            </div>
+            <div>
+                <h2 class="slide-heading">2. Tổ Chức Giao Diện 3 Trang & Điều Hướng</h2>
+                <p class="slide-subtitle">Thiết kế đồng bộ có Navbar cố định, Khung báo trạng thái kết nối, Footer và Responsive</p>
+            </div>
+            <div class="slide-grid-3">
+                <div class="glass-box">
+                    <h3>Trang Chủ (index.html)</h3>
+                    <ul>
+                        <li>3 hộp thống kê nhanh: Tổng số sách, Sách đã đọc xong và Sách đang/chưa đọc.</li>
+                        <li>Biểu đồ tròn <strong>Chart.js</strong> trực quan hóa tỷ lệ hoàn thành.</li>
+                        <li>Khung gửi báo cáo kết quả qua Email.</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>Kệ Sách (books.html)</h3>
+                    <ul>
+                        <li>Biểu mẫu Thêm mới / Cập nhật sách có kiểm tra lỗi nhập liệu trực tiếp.</li>
+                        <li>Thanh công cụ kết hợp Tìm kiếm + Lọc trạng thái + Lọc ưu tiên + Sắp xếp.</li>
+                        <li>Lưới thẻ sách phân biệt rõ sách Đã đọc và Chưa đọc.</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>Tùy Chỉnh (settings.html)</h3>
+                    <ul>
+                        <li>Chuyển đổi 6 bộ Giao diện.</li>
+                        <li>Chuyển đổi 7 Kiểu chữ Roboto Offline.</li>
+                        <li>Tải ảnh nền cá nhân tự nén nhẹ và bộ nút kiểm thử lỗi.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Tổ chức mã nguồn tách biệt module</span>
+                <span>Chuẩn UI/UX & Responsive</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 4 -->
+        <section class="slide-item" data-slide-index="4">
+            <div class="slide-top-bar">
+                <span class="uni-tag">PHẦN 3 • CHỨC NĂNG NGHIỆP VỤ CỐT LÕI (CRUD & VALIDATION)</span>
+                <span class="page-num">Slide 04 / 08</span>
+            </div>
+            <div>
+                <h2 class="slide-heading">3. Quản Lý Sách (CRUD) & Kiểm Tra Dữ Liệu Đầu Vào</h2>
+                <p class="slide-subtitle">Xử lý trọn vẹn Thêm – Xem – Sửa – Xóa – Đánh dấu đọc xong nhanh bằng JavaScript ES6+</p>
+            </div>
+            <div class="slide-grid-2">
+                <div class="glass-box">
+                    <h3>Nghiệp vụ CRUD & Toggle Done 1 chạm</h3>
+                    <ul>
+                        <li><strong>Create:</strong> Sinh mã định danh duy nhất bằng Date.now(), thêm sách mới lên đầu kệ.</li>
+                        <li><strong>Read:</strong> Hiển thị thẻ sách kèm nút Đánh dấu trạng thái nhanh.</li>
+                        <li><strong>Update & Delete:</strong> Nạp ngược dữ liệu để sửa; hiển thị hộp thoại xác nhận <strong>SweetAlert2</strong> trước khi xóa.</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>Kiểm tra dữ liệu đầu vào (Validation)</h3>
+                    <ul>
+                        <li><strong>Tên sách & Tác giả:</strong> Không được để trống.</li>
+                        <li><strong>Ngày dự kiến:</strong> Không được nhỏ hơn ngày hiện tại.</li>
+                        <li><strong>Mô tả:</strong> Bắt buộc tối thiểu <strong>10 ký tự</strong>.</li>
+                        <li><strong>Trải nghiệm:</strong> Báo lỗi màu đỏ ngay dưới từng ô nhập và tự xóa thông báo lỗi (Realtime Validation).</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Hoàn thiện đầy đủ nghiệp vụ CRUD & Validation</span>
+                <span>Không tải lại trang khi báo lỗi</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 5 -->
+        <section class="slide-item" data-slide-index="5">
+            <div class="slide-top-bar">
+                <span class="uni-tag">PHẦN 4 • TÌM KIẾM, LỌC ĐA ĐIỀU KIỆN & LƯU TRỮ BỀN VỮNG</span>
+                <span class="page-num">Slide 05 / 08</span>
+            </div>
+            <div>
+                <h2 class="slide-heading">4. Tìm Kiếm – Lọc – Sắp Xếp & Sao Lưu LocalStorage</h2>
+                <p class="slide-subtitle">Kết hợp đồng thời nhiều điều kiện lọc và hỗ trợ xuất/nhập tệp dữ liệu JSON</p>
+            </div>
+            <div class="slide-grid-2">
+                <div class="glass-box">
+                    <h3>Kết hợp Tìm kiếm + Lọc + Sắp xếp</h3>
+                    <ul>
+                        <li><strong>Tìm kiếm tức thì:</strong> Tìm trên cả Tên sách, Tác giả và Nội dung cảm nhận.</li>
+                        <li><strong>Bộ lọc kép:</strong> Kết hợp lọc theo Trạng thái đọc và Mức độ ưu tiên.</li>
+                        <li><strong>Sắp xếp thông minh:</strong> Sắp xếp danh sách theo Ngày dự kiến đọc xong.</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>Lưu trữ LocalStorage & Sao lưu JSON</h3>
+                    <ul>
+                        <li><strong>Bền vững:</strong> Mọi thay đổi đều đồng bộ vào LocalStorage.</li>
+                        <li><strong>Dữ liệu mẫu:</strong> Tự động nạp sẵn 12 cuốn sách đa dạng.</li>
+                        <li><strong>Export / Import:</strong> Cho phép tải tệp sao lưu <code>.json</code> về máy, khôi phục hoặc gộp nối thêm sách.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Sử dụng Blob API & FileReader API chuẩn HTML5</span>
+                <span>Đảm bảo an toàn dữ liệu</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 6 -->
+        <section class="slide-item" data-slide-index="6">
+            <div class="slide-top-bar">
+                <span class="uni-tag">PHẦN 5 • TÍNH NĂNG MỞ RỘNG & XỬ LÝ NGOẠI LỆ</span>
+                <span class="page-num">Slide 06 / 08</span>
+            </div>
+            <div>
+                <h2 class="slide-heading">5. Tính Năng Nâng Cao & Xử Lý Ngoại Lệ (200 – 500)</h2>
+                <p class="slide-subtitle">Thiết kế vận hành Offline 100%, hiển thị mã trạng thái trực quan trên màn hình và nhật ký F12</p>
+            </div>
+            <div class="slide-grid-2">
+                <div class="glass-box">
+                    <h3>Cá nhân hóa & Chạy Offline 100%</h3>
+                    <ul>
+                        <li><strong>Bộ giao diện Code Thuần:</strong> Tự xây dựng bố cục 12 cột bằng CSS Grid hoàn toàn không phụ thuộc Bootstrap.</li>
+                        <li><strong>Font chữ & Biểu tượng:</strong> Tích hợp dữ liệu cục bộ không cần Internet.</li>
+                        <li><strong>Tự vẽ bìa Vector:</strong> Khi sách bị lỗi ảnh, hệ thống tự vẽ bìa SVG in tên sách.</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>Khung bắt ngoại lệ trên HTML & F12</h3>
+                    <ul>
+                        <li><strong>Hiển thị trực tiếp trên màn hình:</strong>
+                            <ul>
+                                <li>Mã 200: Thao tác dữ liệu thành công.</li>
+                                <li>Mã 300: Chuyển hướng sang bìa SVG dự phòng.</li>
+                                <li>Mã 400: Dữ liệu nhập vi phạm quy tắc Validation.</li>
+                                <li>Mã 404 / 500: Lỗi không tìm thấy hoặc mất kết nối.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Hàm ghiLogF12():</strong> Ghi nhật ký chi tiết các thao tác ra Console hỗ trợ kiểm thử.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Tích hợp các tính năng nâng cao & sáng tạo</span>
+                <span>Kiểm soát lỗi toàn diện</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 7 -->
+        <section class="slide-item" data-slide-index="7">
+            <div class="slide-top-bar">
+                <span class="uni-tag">PHẦN 6 • ĐỊNH HƯỚNG PHÁT TRIỂN TƯƠNG LAI</span>
+                <span class="page-num">Slide 07 / 08</span>
+            </div>
+            <div>
+                <h2 class="slide-heading">6. Định Hướng Nâng Cấp Lên Hệ Thống Web Động</h2>
+                <p class="slide-subtitle">Lộ trình mở rộng từ ứng dụng LocalStorage sang kiến trúc Client – Server hoàn chỉnh</p>
+            </div>
+            <div class="slide-grid-3">
+                <div class="glass-box">
+                    <h3>1. Backend & Cơ sở dữ liệu</h3>
+                    <ul>
+                        <li>Xây dựng RESTful API bằng Java Spring Boot hoặc Node.js.</li>
+                        <li>Chuyển dữ liệu sang hệ quản trị CSDL MySQL / PostgreSQL.</li>
+                        <li>Lưu trữ ảnh bìa trên dịch vụ đám mây (Cloudinary/AWS).</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>2. Tài khoản & Đồng bộ</h3>
+                    <ul>
+                        <li>Tích hợp đăng ký, đăng nhập và xác thực bảo mật JWT / OAuth2.</li>
+                        <li>Đồng bộ tủ sách theo thời gian thực đa thiết bị.</li>
+                        <li>Tính năng chia sẻ kệ sách và viết đánh giá.</li>
+                    </ul>
+                </div>
+                <div class="glass-box">
+                    <h3>3. Trợ lý AI & Nhắc lịch</h3>
+                    <ul>
+                        <li>Tích hợp AI gợi ý sách dựa trên thể loại.</li>
+                        <li>Tóm tắt nội dung chính bằng mô hình ngôn ngữ lớn.</li>
+                        <li>Hệ thống tự động gửi Email nhắc nhở Deadline.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Kiến trúc hiện tại đã tách tầng rõ ràng, sẵn sàng nâng cấp</span>
+                <span>Tầm nhìn phát triển dài hạn</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 8 -->
+        <section class="slide-item" data-slide-index="8">
+            <div class="slide-top-bar">
+                <span class="uni-tag">TRƯỜNG ĐẠI HỌC CMC • KHOA CNTT & TT</span>
+                <span class="page-num">Slide 08 / 08</span>
+            </div>
+            <div style="text-align: center; margin: auto 0;">
+                <p class="slide-subtitle" style="font-size: 1.25rem; letter-spacing: 1.5px; font-weight: 600;">HOÀN THÀNH BÁO CÁO BÀI TẬP GIỮA KỲ</p>
+                <h1 class="slide-heading" style="font-size: 3.4rem; margin-bottom: 16px;">CẢM ƠN THẦY VÀ CÁC BẠN<br>ĐÃ LẮNG NGHE!</h1>
+                
+                <div class="member-pills" style="max-width: 960px; margin: 40px auto 0;">
+                    <div class="member-item"><div class="member-name">Nguyễn Hưng</div><div class="member-role">Trưởng nhóm</div></div>
+                    <div class="member-item"><div class="member-name">Phạm Quang Huy</div><div class="member-role">Thành viên</div></div>
+                    <div class="member-item"><div class="member-name">Đỗ Thị Huyền</div><div class="member-role">Thành viên</div></div>
+                    <div class="member-item"><div class="member-name">Lê Hoàng Lâm</div><div class="member-role">Thành viên</div></div>
+                    <div class="member-item"><div class="member-name">Nguyễn Anh kiệt</div><div class="member-role">Thành viên</div></div>
+                </div>
+
+            </div>
+            <div class="slide-footer">
+                <span>Hỏi & Đáp (Q&A) • Demo trực tiếp trên trình duyệt</span>
+                <span>Tủ Sách Cá Nhân – 2026</span>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const slides = document.querySelectorAll('.slide-item');
+        const totalSlides = slides.length;
+        const dotsContainer = document.getElementById('slideDots');
+
+        try {
+            console.log("[Khởi tạo] Đang thiết lập các nút điều khiển nhanh...");
+            for (let i = 1; i <= totalSlides; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'dot-btn' + (i === 1 ? ' active' : '');
+                btn.innerText = i;
+                btn.onclick = () => showSlide(i);
+                dotsContainer.appendChild(btn);
+            }
+        } catch (error) {
+            console.error("[Lỗi Khởi tạo]:", error);
+        }
+
+        function showSlide(n) {
+            try {
+                console.log(`[Chuyển Slide] Yêu cầu chuyển tới Slide ${n}`);
+                if (n < 1) n = totalSlides;
+                if (n > totalSlides) n = 1;
+                currentSlide = n;
+                slides.forEach((s, idx) => {
+                    s.classList.toggle('active', idx + 1 === currentSlide);
+                });
+                document.querySelectorAll('.dot-btn').forEach((d, idx) => {
+                    d.classList.toggle('active', idx + 1 === currentSlide);
+                });
+                console.log(`[Chuyển Slide] Hoàn tất hiển thị Slide ${currentSlide}`);
+            } catch (error) {
+                console.error("[Lỗi Chuyển Slide]:", error);
+            }
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { showSlide(currentSlide - 1); }
+
+        function toggleGridMode() {
+            try {
+                document.body.classList.toggle('grid-mode');
+                const isGrid = document.body.classList.contains('grid-mode');
+                document.getElementById('btnGridToggle').innerText = isGrid ? 'Xem từng Slide' : 'Xem lưới';
+                console.log(`[View Mode] Đã chuyển sang chế độ: ${isGrid ? 'Lưới' : 'Từng Slide'}`);
+            } catch (error) {
+                console.error("[Lỗi Chuyển Chế Độ Xem]:", error);
+            }
+        }
+
+        function toggleFullScreen() {
+            try {
+                const stage = document.getElementById('slideStage');
+                if (!document.fullscreenElement) {
+                    stage.requestFullscreen().catch((err) => {
+                        console.warn("[Cảnh báo Toàn Màn Hình]:", err);
+                    });
+                    console.log("[Fullscreen] Đã bật toàn màn hình");
+                } else {
+                    document.exitFullscreen();
+                    console.log("[Fullscreen] Đã thoát toàn màn hình");
+                }
+            } catch (error) {
+                console.error("[Lỗi Fullscreen]:", error);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        const SLIDE_DATA_FOR_CANVAS = [
+            {
+                tag: "TRƯỜNG ĐẠI HỌC CMC • KHOA CNTT & TT",
+                page: "Slide 01 / 08",
+                title: "ỨNG DỤNG QUẢN LÝ TỦ SÁCH CÁ NHÂN (BOOK TRACKER)",
+                subtitle: "BÁO CÁO BÀI TẬP GIỮA KỲ • HỌC PHẦN PHÁT TRIỂN ỨNG DỤNG WEB",
+                boxes: [
+                    {
+                        head: "Danh sách thành viên thực hiện nhóm",
+                        color: "#3b82f6",
+                        items: [
+                            "1. Nguyễn Hưng – Trưởng nhóm",
+                            "2. Phạm Quang Huy – Thành viên nhóm",
+                            "3. Đỗ Thị Huyền – Thành viên nhóm",
+                            "4. Lê Hoàng Lâm – Thành viên nhóm",
+                            "5. Nguyễn Anh kiệt – Thành viên nhóm"
+                        ]
+                    },
+                    {
+                        head: "Tổng quan sản phẩm",
+                        color: "#10b981",
+                        items: [
+                            "Quản lý trọn vẹn sách cá nhân (Thêm, Xem, Sửa, Xóa, Đánh dấu)",
+                            "Tìm kiếm, Lọc đa điều kiện & Sắp xếp theo hạn đọc",
+                            "Giao diện kép: Bootstrap 5 + Bộ Giao diện Code Thuần tự thiết kế",
+                            "Vận hành Offline 100%, xử lý ngoại lệ 200/300/400/404/500"
+                        ]
+                    }
+                ]
+            },
+            {
+                tag: "PHẦN 1 • MÔ TẢ ĐỀ BÀI & CÔNG NGHỆ SỬ DỤNG",
+                page: "Slide 02 / 08",
+                title: "1. Giới Thiệu Bài Toán & Yêu Cầu Đề Bài",
+                subtitle: "Xây dựng website quản lý có đầy đủ CRUD, tìm kiếm/lọc, LocalStorage và Responsive",
+                boxes: [
+                    {
+                        head: "Mục tiêu & Yêu cầu cốt lõi của đề bài",
+                        color: "#3b82f6",
+                        items: [
+                            "Theo dõi danh sách sách cá nhân, hạn hoàn thành và cảm nhận.",
+                            "Thiết kế 3 trang: Trang chủ, Kệ sách, Tùy chỉnh.",
+                            "Lưu trữ tối thiểu 6 trường: ID, Tên sách, Tác giả, Mô tả, Hạn đọc, Ưu tiên.",
+                            "Bắt buộc có Navbar, Footer và tương thích đa màn hình."
+                        ]
+                    },
+                    {
+                        head: "Công nghệ & Thư viện sử dụng",
+                        color: "#10b981",
+                        items: [
+                            "Nền tảng: HTML5, CSS3 & JavaScript ES6+.",
+                            "Giao diện: 5 chủ đề Bootstrap + 1 Bộ giao diện Code Thuần.",
+                            "Thư viện cục bộ: Chart.js, SweetAlert2.",
+                            "Mở rộng: Báo cáo qua EmailJS & Sao lưu/Phục hồi JSON."
+                        ]
+                    }
+                ]
+            },
+            {
+                tag: "PHẦN 2 • KIẾN TRÚC GIAO DIỆN & ĐIỀU HƯỚNG",
+                page: "Slide 03 / 08",
+                title: "2. Tổ Chức Giao Diện 3 Trang & Điều Hướng",
+                subtitle: "Thiết kế đồng bộ có Navbar, Khung báo trạng thái, Footer và Responsive",
+                boxes: [
+                    {
+                        head: "Trang Chủ & Kệ Sách",
+                        color: "#3b82f6",
+                        items: [
+                            "Trang chủ: 3 hộp thống kê + Biểu đồ tròn Chart.js.",
+                            "Thống kê số lượng sách theo 3 mức ưu tiên & Gửi Email.",
+                            "Kệ sách: Biểu mẫu Thêm/Sửa sách + Thanh Tìm kiếm, Lọc, Sắp xếp.",
+                            "Phân biệt rõ thẻ sách Đã đọc xong với sách Chưa đọc."
+                        ]
+                    },
+                    {
+                        head: "Trang Tùy Chỉnh Cá Nhân Hóa",
+                        color: "#10b981",
+                        items: [
+                            "Chọn 6 bộ màu sắc và bố cục giao diện.",
+                            "Chọn 7 kiểu chữ Roboto nạp trực tiếp Offline.",
+                            "Tải hình nền cá nhân tự nén nhẹ bằng Canvas.",
+                            "Bộ nút kiểm thử lỗi kết nối."
+                        ]
+                    }
+                ]
+            },
+            {
+                tag: "PHẦN 3 • CHỨC NĂNG NGHIỆP VỤ CỐT LÕI",
+                page: "Slide 04 / 08",
+                title: "3. Quản Lý Sách (CRUD) & Kiểm Tra Dữ Liệu Đầu Vào",
+                subtitle: "Xử lý trọn vẹn Thêm – Xem – Sửa – Xóa – Đánh dấu bằng JavaScript ES6+",
+                boxes: [
+                    {
+                        head: "Nghiệp vụ CRUD & Đánh dấu 1 chạm",
+                        color: "#3b82f6",
+                        items: [
+                            "Create (Thêm): Tự sinh ID, thêm sách lên đầu kệ.",
+                            "Read & Toggle Done: Đổi nhanh trạng thái Đã đọc / Đọc lại.",
+                            "Update (Sửa): Đưa thông tin sách lên biểu mẫu để cập nhật.",
+                            "Delete (Xóa): Hiển thị hộp thoại xác nhận trước khi xóa."
+                        ]
+                    },
+                    {
+                        head: "Kiểm tra dữ liệu đầu vào (Validation)",
+                        color: "#10b981",
+                        items: [
+                            "Kiểm tra Tên sách và Tác giả không được để trống.",
+                            "Kiểm tra Ngày dự kiến không được nhỏ hơn ngày hiện tại.",
+                            "Kiểm tra Mô tả / Cảm nhận phải đạt tối thiểu từ 10 ký tự.",
+                            "Báo lỗi rõ ràng ngay dưới từng ô nhập, không tải lại trang."
+                        ]
+                    }
+                ]
+            },
+            {
+                tag: "PHẦN 4 • TÌM KIẾM, LỌC & LƯU TRỮ BỀN VỮNG",
+                page: "Slide 05 / 08",
+                title: "4. Tìm Kiếm – Lọc – Sắp Xếp & Sao Lưu LocalStorage",
+                subtitle: "Kết hợp đồng thời nhiều điều kiện lọc và hỗ trợ xuất/nhập tệp JSON",
+                boxes: [
+                    {
+                        head: "Kết hợp Tìm kiếm + Lọc + Sắp xếp",
+                        color: "#3b82f6",
+                        items: [
+                            "Tìm kiếm từ khóa theo Tên sách, Tác giả hoặc Mô tả.",
+                            "Lọc đồng thời theo Trạng thái & Mức ưu tiên.",
+                            "Sắp xếp theo Ngày dự kiến đọc xong.",
+                            "Cập nhật tức thì số lượng kết quả."
+                        ]
+                    },
+                    {
+                        head: "Lưu trữ LocalStorage & Sao lưu JSON",
+                        color: "#10b981",
+                        items: [
+                            "Tự động lưu vào LocalStorage (chống mất dữ liệu khi F5).",
+                            "Khởi tạo sẵn 12 cuốn sách mẫu đa dạng.",
+                            "Xuất toàn bộ tủ sách ra tệp .json tải về máy.",
+                            "Khôi phục hoặc gộp nối tủ sách từ tệp .json."
+                        ]
+                    }
+                ]
+            },
+            {
+                tag: "PHẦN 5 • TÍNH NĂNG MỞ RỘNG & XỬ LÝ NGOẠI LỆ",
+                page: "Slide 06 / 08",
+                title: "5. Tính Năng Nâng Cao & Xử Lý Ngoại Lệ",
+                subtitle: "Thiết kế vận hành Offline 100%, hiển thị mã trạng thái trực quan",
+                boxes: [
+                    {
+                        head: "Vận hành Offline 100% & Tự vẽ bìa SVG",
+                        color: "#3b82f6",
+                        items: [
+                            "Tự động vẽ bìa Vector SVG in tên sách khi lỗi ảnh.",
+                            "Bắt sự kiện onerror chuyển sang bìa dự phòng (Mã 300).",
+                            "Nén ảnh nền bằng Canvas giúp tiết kiệm LocalStorage.",
+                            "Gửi báo cáo qua thư bằng EmailJS."
+                        ]
+                    },
+                    {
+                        head: "Khung báo Mã trạng thái trên HTML & F12",
+                        color: "#10b981",
+                        items: [
+                            "Mã 200: Thao tác dữ liệu thành công.",
+                            "Mã 300: Chuyển hướng sang bìa dự phòng.",
+                            "Mã 400 & Mã 404/500: Báo lỗi nhập liệu hoặc lỗi kết nối.",
+                            "Hàm ghiLogF12() in chi tiết mọi thao tác ra Console."
+                        ]
+                    }
+                ]
+            },
+            {
+                tag: "PHẦN 6 • ĐỊNH HƯỚNG TƯƠNG LAI",
+                page: "Slide 07 / 08",
+                title: "6. Định Hướng Nâng Cấp Lên Hệ Thống Web Động",
+                subtitle: "Lộ trình mở rộng từ ứng dụng LocalStorage sang Client – Server",
+                boxes: [
+                    {
+                        head: "Tích hợp Backend & Database",
+                        color: "#3b82f6",
+                        items: [
+                            "Xây dựng RESTful API bằng Java Spring Boot hoặc Node.js.",
+                            "Lưu trữ dữ liệu MySQL / PostgreSQL.",
+                            "Tích hợp bảo mật JWT / OAuth2.",
+                            "Đồng bộ tủ sách theo thời gian thực."
+                        ]
+                    },
+                    {
+                        head: "Cộng đồng & Trợ lý AI",
+                        color: "#10b981",
+                        items: [
+                            "Chia sẻ kệ sách, viết bài cảm nhận cùng bạn bè.",
+                            "Tích hợp AI gợi ý cuốn sách tiếp theo.",
+                            "Tự động tóm tắt ý chính của sách bằng AI.",
+                            "Máy chủ gửi thông báo nhắc lịch khi đến hạn Deadline."
+                        ]
+                    }
+                ]
+            },
+            {
+                tag: "TRƯỜNG ĐẠI HỌC CMC • KHOA CNTT & TT",
+                page: "Slide 08 / 08",
+                title: "CẢM ƠN THẦY VÀ CÁC BẠN ĐÃ LẮNG NGHE!",
+                subtitle: "HOÀN THÀNH BÁO CÁO GIỮA KỲ • MỜI THẦY VÀ CÁC BẠN ĐẶT CÂU HỎI",
+                boxes: [
+                    {
+                        head: "Nhóm sinh viên thực hiện",
+                        color: "#3b82f6",
+                        items: [
+                            "Nguyễn Hưng – Trưởng nhóm",
+                            "Phạm Quang Huy – Thành viên nhóm",
+                            "Đỗ Thị Huyền – Thành viên nhóm",
+                            "Lê Hoàng Lâm – Thành viên nhóm",
+                            "Nguyễn Anh kiệt – Thành viên nhóm"
+                        ]
+                    },
+                    {
+                        head: "Nội dung Demo trực tiếp",
+                        color: "#10b981",
+                        items: [
+                            "1. Thêm sách mới, Tải lại trang (F5)",
+                            "2. Sửa thông tin sách, Đánh dấu & Xóa sách",
+                            "3. Tìm kiếm + Lọc đa luồng + Sắp xếp",
+                            "4. Kiểm tra lỗi Validation, Đổi giao diện"
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        function renderSlideToCanvas(slideObj) {
+            try {
+                console.log(`[Canvas] Đang vẽ slide xuất PNG: ${slideObj.page}`);
+                const canvas = document.createElement('canvas');
+                canvas.width = 1920;
+                canvas.height = 1080;
+                const ctx = canvas.getContext('2d');
+
+                // Nền gradient sáng
+                const grad = ctx.createLinearGradient(0, 0, 1920, 1080);
+                grad.addColorStop(0, '#fdfbfb');
+                grad.addColorStop(1, '#f1f5f9');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 1920, 1080);
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = 'bold 26px "Segoe UI", Arial, sans-serif';
+                ctx.fillText(slideObj.tag, 90, 85);
+
+                ctx.fillStyle = '#0369a1';
+                ctx.font = 'bold 24px "Segoe UI", Arial, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(slideObj.page, 1830, 85);
+                ctx.textAlign = 'left';
+
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(90, 110);
+                ctx.lineTo(1830, 110);
+                ctx.stroke();
+
+                ctx.fillStyle = '#475569';
+                ctx.font = '600 28px "Segoe UI", Arial, sans-serif';
+                ctx.fillText(slideObj.subtitle, 90, 175);
+
+                ctx.fillStyle = '#1e3a8a';
+                ctx.font = 'bold 52px "Segoe UI", Arial, sans-serif';
+                ctx.fillText(slideObj.title, 90, 245);
+
+                const boxWidth = 845;
+                const boxHeight = 640;
+                const boxY = 300;
+
+                slideObj.boxes.forEach((box, idx) => {
+                    const boxX = idx === 0 ? 90 : 985;
+                    
+                    // Nền box trắng đổ bóng
+                    ctx.shadowColor = 'rgba(0,0,0,0.05)';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowOffsetY = 4;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 16);
+                    ctx.fill();
+                    
+                    // Reset shadow cho viền & text
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    // Vẽ vệt màu bên trái của box
+                    ctx.fillStyle = box.color || '#3b82f6';
+                    ctx.beginPath();
+                    ctx.roundRect(boxX, boxY, 8, boxHeight, 16);
+                    ctx.fill();
+
+                    // Text Header
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = 'bold 34px "Segoe UI", Arial, sans-serif';
+                    ctx.fillText(box.head, boxX + 40, boxY + 65);
+
+                    // Text Content
+                    ctx.fillStyle = '#334155';
+                    ctx.font = '28px "Segoe UI", Arial, sans-serif';
+                    let curY = boxY + 130;
+                    box.items.forEach(line => {
+                        const words = line.split(' ');
+                        let currentLine = '';
+                        words.forEach(w => {
+                            const testLine = currentLine + w + ' ';
+                            if (ctx.measureText(testLine).width > boxWidth - 80) {
+                                ctx.fillText(currentLine, boxX + 40, curY);
+                                currentLine = '   ' + w + ' ';
+                                curY += 42;
+                            } else {
+                                currentLine = testLine;
+                            }
+                        });
+                        ctx.fillText(currentLine, boxX + 40, curY);
+                        curY += 54;
+                    });
+                });
+
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.beginPath();
+                ctx.moveTo(90, 995);
+                ctx.lineTo(1830, 995);
+                ctx.stroke();
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '24px "Segoe UI", Arial, sans-serif';
+                ctx.fillText("Nhóm thực hiện: Hưng • Huy • Huyền • Lê Hoàng Lâm • Nguyễn Anh kiệt", 90, 1040);
+                ctx.textAlign = 'right';
+                ctx.fillText("Tủ Sách Cá Nhân • Đại học CMC (2026)", 1830, 1040);
+                ctx.textAlign = 'left';
+
+                return canvas;
+            } catch (error) {
+                console.error("[Lỗi Render Canvas]:", error);
+                throw error;
+            }
+        }
+
+        const CRC_TABLE = (() => {
+            const table = new Uint32Array(256);
+            for (let i = 0; i < 256; i++) {
+                let c = i;
+                for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                table[i] = c >>> 0;
+            }
+            return table;
+        })();
+
+        function crc32(bytes) {
+            let crc = 0xFFFFFFFF;
+            for (let i = 0; i < bytes.length; i++) {
+                crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ bytes[i]) & 0xFF];
+            }
+            return (crc ^ 0xFFFFFFFF) >>> 0;
+        }
+
+        function createZipFromFiles(files) {
+            try {
+                console.log("[ZIP Core] Bắt đầu đóng gói nhị phân ZIP...");
+                const localParts = [];
+                const centralParts = [];
+                let offset = 0;
+                const enc = new TextEncoder();
+
+                files.forEach(file => {
+                    const nameBytes = enc.encode(file.name);
+                    const data = file.data;
+                    const crc = crc32(data);
+
+                    const localHeader = new Uint8Array(30 + nameBytes.length);
+                    const lv = new DataView(localHeader.buffer);
+                    lv.setUint32(0, 0x04034b50, true);
+                    lv.setUint16(4, 20, true);
+                    lv.setUint16(6, 0, true);
+                    lv.setUint16(8, 0, true);
+                    lv.setUint16(10, 0, true);
+                    lv.setUint16(12, 0, true);
+                    lv.setUint32(14, crc, true);
+                    lv.setUint32(18, data.length, true);
+                    lv.setUint32(22, data.length, true);
+                    lv.setUint16(26, nameBytes.length, true);
+                    lv.setUint16(28, 0, true);
+                    localHeader.set(nameBytes, 30);
+
+                    localParts.push(localHeader, data);
+
+                    const centralHeader = new Uint8Array(46 + nameBytes.length);
+                    const cv = new DataView(centralHeader.buffer);
+                    cv.setUint32(0, 0x02014b50, true);
+                    cv.setUint16(4, 20, true);
+                    cv.setUint16(6, 20, true);
+                    cv.setUint16(8, 0, true);
+                    cv.setUint16(10, 0, true);
+                    cv.setUint16(12, 0, true);
+                    cv.setUint16(14, 0, true);
+                    cv.setUint32(16, crc, true);
+                    cv.setUint32(20, data.length, true);
+                    cv.setUint32(24, data.length, true);
+                    cv.setUint16(28, nameBytes.length, true);
+                    cv.setUint16(30, 0, true);
+                    cv.setUint16(32, 0, true);
+                    cv.setUint16(34, 0, true);
+                    cv.setUint16(36, 0, true);
+                    cv.setUint32(38, 0, true);
+                    cv.setUint32(42, offset, true);
+                    centralHeader.set(nameBytes, 46);
+
+                    centralParts.push(centralHeader);
+                    offset += localHeader.length + data.length;
+                });
+
+                const centralSize = centralParts.reduce((acc, p) => acc + p.length, 0);
+                const eocd = new Uint8Array(22);
+                const ev = new DataView(eocd.buffer);
+                ev.setUint32(0, 0x06054b50, true);
+                ev.setUint16(4, 0, true);
+                ev.setUint16(6, 0, true);
+                ev.setUint16(8, files.length, true);
+                ev.setUint16(10, files.length, true);
+                ev.setUint32(12, centralSize, true);
+                ev.setUint32(16, offset, true);
+                ev.setUint16(20, 0, true);
+
+                console.log("[ZIP Core] Đóng gói thành công!");
+                return new Blob([...localParts, ...centralParts, eocd], { type: 'application/zip' });
+            } catch (error) {
+                console.error("[Lỗi Đóng gói ZIP]:", error);
+                throw error;
+            }
+        }
+
+        function dataURLToUint8Array(dataURL) {
+            const base64 = dataURL.split(',')[1];
+            const binStr = atob(base64);
+            const len = binStr.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+            return bytes;
+        }
+
+        function exportAllSlidesToZip() {
+            try {
+                console.log("[Xuất ZIP] Yêu cầu bắt đầu...");
+                const btn = document.getElementById('btnDownloadSlideZip');
+                const oldText = btn.innerText;
+                btn.innerText = 'Đang kết xuất 8 ảnh...';
+
+                setTimeout(() => {
+                    try {
+                        const files = SLIDE_DATA_FOR_CANVAS.map((sData, idx) => {
+                            const canvas = renderSlideToCanvas(sData);
+                            const pngBytes = dataURLToUint8Array(canvas.toDataURL('image/png'));
+                            const num = String(idx + 1).padStart(2, '0');
+                            return { name: `Slide-${num}-16x9.png`, data: pngBytes };
+                        });
+
+                        const zipBlob = createZipFromFiles(files);
+                        const url = URL.createObjectURL(zipBlob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'Slide-Bao-Cao-Colorful.zip';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+
+                        console.log("[Xuất ZIP] Tải xuống thành công!");
+                        btn.innerText = 'Đã tải tệp ZIP!';
+                        setTimeout(() => { btn.innerText = oldText; }, 2500);
+                    } catch (innerError) {
+                        console.error("[Lỗi bên trong luồng ZIP]:", innerError);
+                        alert("Có lỗi trong quá trình xuất PNG/ZIP. Xem F12.");
+                        btn.innerText = 'Lỗi xuất ZIP!';
+                        setTimeout(() => { btn.innerText = oldText; }, 2500);
+                    }
+                }, 150);
+            } catch (error) {
+                console.error("[Lỗi Hệ Thống ZIP]:", error);
+            }
+        }
+    </script>
+</body>
+</html>

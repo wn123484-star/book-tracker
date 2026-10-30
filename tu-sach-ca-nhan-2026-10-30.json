@@ -1,0 +1,204 @@
+[
+  {
+    "id": "1793331843635",
+    "title": "Có hai con mèo ngôi bên cửa sổ",
+    "author": "Nguyễn Nhật Ánh",
+    "deadline": "2026-12-12",
+    "priority": "Trung bình",
+    "status": "Chưa đọc",
+    "coverUrl": "",
+    "description": "Quyển sách này rất hay và cảm động tôi muốn đọc thêm nhá"
+  },
+  {
+    "title": "Đắc Nhân Tâm",
+    "author": "Dale Carnegie",
+    "coverUrl": "https://upload.wikimedia.org/wikipedia/vi/thumb/1/1c/How_to_Win_Friends_and_Influence_People.jpg/220px-How_to_Win_Friends_and_Influence_People.jpg",
+    "status": "Đã đọc"
+  },
+  {
+    "title": "Nhà Giả Kim",
+    "author": "Paulo Coelho",
+    "coverUrl": "https://upload.wikimedia.org/wikipedia/vi/thumb/9/91/B%C3%ACa_s%C3%A1ch_Nh%C3%A0_gi%E1%BA%A3_kim.jpg/220px-B%C3%ACa_s%C3%A1ch_Nh%C3%A0_gi%E1%BA%A3_kim.jpg",
+    "status": "Đã đọc"
+  },
+  {
+    "title": "Sapiens: Lược sử loài người",
+    "author": "Yuval Noah Harari",
+    "coverUrl": "",
+    "status": "Đang đọc"
+  },
+  {
+    "title": "Tội Ác Và Hình Phạt",
+    "author": "Fyodor Dostoevsky",
+    "coverUrl": "",
+    "status": "Chưa đọc"
+  },
+  {
+    "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
+    "author": "Robert C. Martin",
+    "coverUrl": "",
+    "status": "Đã đọc"
+  },
+  {
+    "title": "Design Patterns: Elements of Reusable Object-Oriented Software",
+    "author": "Erich Gamma",
+    "coverUrl": "",
+    "status": "Chưa đọc"
+  },
+  {
+    "title": "Bố Già",
+    "author": "Mario Puzo",
+    "coverUrl": "https://upload.wikimedia.org/wikipedia/vi/thumb/1/1a/Bogiabiasach.jpg/220px-Bogiabiasach.jpg",
+    "status": "Đang đọc"
+  },
+  {
+    "id": "1001_1793333691931_0",
+    "title": "Hai Con Mèo Ngồi Bên Cửa Sổ",
+    "author": "Nguyễn Nhật Ánh",
+    "deadline": "2026-11-12",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80",
+    "description": "Chuyện tình bạn kỳ lạ giữa mèo Gấu và chuột Tí Hon cùng những vần thơ tình ấm áp bên khung cửa sổ."
+  },
+  {
+    "id": "1002_1793333691931_1",
+    "title": "Dế Mèn Phiêu Lưu Ký",
+    "author": "Tô Hoài",
+    "deadline": "2026-11-15",
+    "priority": "Trung bình",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80",
+    "description": "Hành trình trưởng thành đầy bài học sâu sắc về tình bạn và lòng nhân ái của chú Dế Mèn qua nhiều vùng đất."
+  },
+  {
+    "id": "1003_1793333691931_2",
+    "title": "Đắc Nhân Tâm",
+    "author": "Dale Carnegie",
+    "deadline": "2026-11-25",
+    "priority": "Cao",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
+    "description": "Cuốn sách gối đầu giường hướng dẫn nghệ thuật giao tiếp, lắng nghe và thu phục lòng người trong cuộc sống."
+  },
+  {
+    "id": "1004_1793333691931_3",
+    "title": "Clean Code - Mã Sạch",
+    "author": "Robert C. Martin",
+    "deadline": "2026-12-01",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80",
+    "description": "Cẩm nang viết mã nguồn rõ ràng, dễ bảo trì, đặt tên biến chuẩn và tối ưu hàm dành cho dân lập trình."
+  },
+  {
+    "id": "1005_1793333691931_4",
+    "title": "Tuổi Trẻ Đáng Giá Bao Nhiêu",
+    "author": "Rosie Nguyễn",
+    "deadline": "2026-11-20",
+    "priority": "Thấp",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=600&q=80",
+    "description": "Những chia sẻ truyền cảm hứng giúp người trẻ định hướng việc tự học, đi trải nghiệm và theo đuổi ước mơ."
+  },
+  {
+    "id": "1006_1793333691931_5",
+    "title": "Tôi Thấy Hoa Vàng Trên Cỏ Xanh",
+    "author": "Nguyễn Nhật Ánh",
+    "deadline": "2026-12-15",
+    "priority": "Trung bình",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80",
+    "description": "Những trang viết trong trẻo về tuổi thơ nơi làng quê nghèo với tình anh em và những rung động đầu đời."
+  },
+  {
+    "id": "1007_1793333691931_6",
+    "title": "Nhà Giả Kim",
+    "author": "Paulo Coelho",
+    "deadline": "2026-11-18",
+    "priority": "Cao",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?auto=format&fit=crop&w=600&q=80",
+    "description": "Câu chuyện triết lý về chàng chăn cừu Santiago trên con đường vượt sa mạc theo đuổi vận mệnh của đời mình."
+  },
+  {
+    "id": "1008_1793333691931_7",
+    "title": "JavaScript: The Good Parts",
+    "author": "Douglas Crockford",
+    "deadline": "2027-01-10",
+    "priority": "Trung bình",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80",
+    "description": "Khám phá những tinh hoa cốt lõi của ngôn ngữ JavaScript giúp viết code web mượt mà và ít lỗi hơn."
+  },
+  {
+    "id": "1009_1793333691931_8",
+    "title": "Sapiens: Lược Sử Loài Người",
+    "author": "Yuval Noah Harari",
+    "deadline": "2026-12-05",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=600&q=80",
+    "description": "Bức tranh toàn cảnh về lịch sử tiến hóa và phát triển của văn minh nhân loại từ thời cổ đại đến hiện đại."
+  },
+  {
+    "id": "1010_1793333691931_9",
+    "title": "Cây Cam Ngọt Của Tôi",
+    "author": "José Mauro de Vasconcelos",
+    "deadline": "2026-12-22",
+    "priority": "Trung bình",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80",
+    "description": "Câu chuyện chạm đến trái tim về cậu bé Zezé tinh nghịch nhưng giàu tình cảm và cây cam ngọt sau vườn."
+  },
+  {
+    "id": "1011_1793333691931_10",
+    "title": "Mắt Biếc",
+    "author": "Nguyễn Nhật Ánh",
+    "deadline": "2026-12-28",
+    "priority": "Trung bình",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1474932430478-367dbb6832c1?auto=format&fit=crop&w=600&q=80",
+    "description": "Chuyện tình đơn phương da diết của Ngạn dành cho Hà Lan gắn liền với hình ảnh làng Đo Đo mộc mạc."
+  },
+  {
+    "id": "1012_1793333691931_11",
+    "title": "Tư Duy Nhanh Và Chậm",
+    "author": "Daniel Kahneman",
+    "deadline": "2027-01-15",
+    "priority": "Cao",
+    "status": "Đang đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80",
+    "description": "Phân tích hai hệ thống tư duy của con người giúp đưa ra quyết định sáng suốt hơn trong công việc và đời sống."
+  },
+  {
+    "id": "1013_1793333691931_12",
+    "title": "Muôn Kiếp Nhân Sinh",
+    "author": "Nguyên Phong",
+    "deadline": "2027-01-25",
+    "priority": "Thấp",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80",
+    "description": "Những câu chuyện tiền kiếp kỳ lạ giúp người đọc chiêm nghiệm sâu sắc về luật nhân quả trong vũ trụ."
+  },
+  {
+    "id": "1014_1793333691931_13",
+    "title": "Cho Tôi Xin Một Vé Đi Tuổi Thơ",
+    "author": "Nguyễn Nhật Ánh",
+    "deadline": "2027-02-10",
+    "priority": "Trung bình",
+    "status": "Đã đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=600&q=80",
+    "description": "Chuyến tàu quay ngược thời gian trở về thế giới hồn nhiên của bốn đứa trẻ cu Mùi, Hải cò, Tủn và Tí sún."
+  },
+  {
+    "id": "1015_1793333691931_14",
+    "title": "Không Diệt Không Sinh Đừng Sợ Hãi",
+    "author": "Thích Nhất Hạnh",
+    "deadline": "2027-02-28",
+    "priority": "Thấp",
+    "status": "Chưa đọc",
+    "coverUrl": "https://images.unsplash.com/photo-1507842229356-51c61504d3ab?auto=format&fit=crop&w=600&q=80",
+    "description": "Những lời giảng nhẹ nhàng, sâu lắng giúp tâm hồn bình an và vượt qua nỗi sợ hãi trước những biến cố."
+  }
+]

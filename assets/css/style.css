@@ -1,0 +1,443 @@
+/* [MÃ: CSS-01] Khai báo 2 font chữ ưu tiên lấy trực tiếp từ thư mục static có sẵn trong máy để không bao giờ bị lỗi 404 */
+@font-face {
+    font-family: 'Roboto-UuTien-Chuan';
+    src: url('../fonts/static/Roboto_Condensed-Light.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Roboto-UuTien-Dam';
+    src: url('../fonts/static/Roboto_Condensed-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* [MÃ: CSS-02] Khai báo thêm các kiểu chữ chi tiết trong thư mục assets/fonts/static/ để người dùng đổi trong Cài đặt */
+@font-face {
+    font-family: 'Roboto-ChiTiet-Nghieng';
+    src: url('../fonts/static/Roboto_Condensed-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Roboto-ChiTiet-SieuManh';
+    src: url('../fonts/static/Roboto_Condensed-ExtraLight.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Roboto-ChiTiet-SieuDam';
+    src: url('../fonts/static/Roboto_Condensed-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Roboto-ChiTiet-DamVua';
+    src: url('../fonts/static/Roboto_Condensed-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* [MÃ: CSS-03] Tạo biến lưu font chữ chung cho cả web, mặc định vào là dùng font ưu tiên 1 luôn */
+:root {
+    --app-font-family: 'Roboto-UuTien-Chuan', 'Segoe UI', Arial, sans-serif;
+}
+
+body, button, input, select, textarea, .card, .navbar, .btn, h1, h2, h3, h4, h5, h6 {
+    font-family: var(--app-font-family) !important;
+}
+
+/* Khúc này kiểm tra xem thẻ html đang mang thuộc tính data-font gì thì đổi biến font sang kiểu chữ đó */
+html[data-font="priority-regular"] {
+    --app-font-family: 'Roboto-UuTien-Chuan', sans-serif;
+}
+html[data-font="priority-bold"] {
+    --app-font-family: 'Roboto-UuTien-Dam', sans-serif;
+}
+html[data-font="static-italic"] {
+    --app-font-family: 'Roboto-ChiTiet-Nghieng', sans-serif;
+    font-style: italic;
+}
+html[data-font="static-extralight"] {
+    --app-font-family: 'Roboto-ChiTiet-SieuManh', sans-serif;
+}
+html[data-font="static-black"] {
+    --app-font-family: 'Roboto-ChiTiet-SieuDam', sans-serif;
+}
+html[data-font="static-extrabold"] {
+    --app-font-family: 'Roboto-ChiTiet-DamVua', sans-serif;
+}
+html[data-font="system"] {
+    --app-font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+/* [MÃ: CSS-04] Căn chỉnh khung body dạng cột dọc để đẩy cái chân trang (Footer) luôn nằm sát dưới đáy màn hình */
+html, body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bs-body-bg);
+    transition: background-color 0.3s ease;
+}
+
+main {
+    flex: 1;
+}
+
+/* [MÃ: CSS-05] Chỗ này xử lý ẩn hiện icon: nếu chọn bộ mặc định web thì giấu thẻ img đi, hiện thẻ i của bootstrap lên */
+html.use-default-icons .dynamic-icon {
+    display: none !important;
+}
+html:not(.use-default-icons) .default-icon {
+    display: none !important;
+}
+
+.nav-logo { width: 26px; height: 26px; object-fit: contain; }
+.stat-icon { width: 32px; height: 32px; object-fit: contain; }
+.title-icon { width: 26px; height: 26px; object-fit: contain; vertical-align: middle; }
+.giant-icon { width: 72px; height: 72px; object-fit: contain; display: block; }
+.empty-icon { width: 64px; height: 64px; object-fit: contain; opacity: 0.7; margin: 0 auto; display: block; }
+
+/* [MÃ: CSS-06] Trang trí 3 cái hộp thống kê ở trang chủ và thẻ sách ở trang kệ sách */
+.icon-box {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.stat-card, .book-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border-radius: 16px;
+}
+.stat-card:hover, .book-card:hover {
+    transform: translateY(-5px);
+}
+
+.book-cover-wrapper {
+    height: 230px;
+    overflow: hidden;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    background: #e9ecef;
+}
+.book-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Đề bài bắt buộc phân biệt sách Đã đọc với Chưa đọc nên chỗ này tô viền xanh lá và gạch ngang tên sách */
+.book-card.book-done {
+    border: 2px solid #198754 !important;
+    opacity: 0.92;
+}
+.book-card.book-done .book-title-text {
+    text-decoration: line-through;
+    color: #198754;
+}
+
+/* [MÃ: CSS-07] Khi người dùng cài ảnh nền cá nhân thì làm mờ nền các khung trắng một chút để chữ vẫn đọc rõ */
+body.has-bg .card,
+body.has-bg .welcome-banner,
+body.has-bg .app-footer {
+    background-color: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* [MÃ: CSS-09] Thiết kế Khung thông báo trạng thái & bắt ngoại lệ trên màn hình (#systemStatusBox)
+   Đổi màu rõ rệt theo từng nhóm mã: 200 (Xanh lá), 300 (Xanh dương), 400 (Cam), 404/500 (Đỏ) */
+.status-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border-left: 6px solid #16a34a;
+    background: #f0fdf4;
+    color: #14532d;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+}
+.status-banner.hidden-banner {
+    display: none !important;
+}
+.status-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.status-code-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    background: #16a34a;
+    color: #ffffff;
+    white-space: nowrap;
+}
+.status-text-group {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.92rem;
+}
+.status-detail-sub {
+    font-size: 0.84rem;
+    opacity: 0.88;
+}
+.status-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.35rem;
+    font-weight: bold;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.65;
+    padding: 0 6px;
+}
+.status-close-btn:hover {
+    opacity: 1;
+}
+
+/* Màu cho mã 200 (Thành công) */
+.status-banner.status-200 {
+    border-left-color: #16a34a;
+    background: #f0fdf4;
+    color: #14532d;
+}
+.status-banner.status-200 .status-code-pill { background: #16a34a; }
+
+/* Màu cho mã 300 / 304 (Chuyển hướng / Dùng dữ liệu dự phòng) */
+.status-banner.status-300 {
+    border-left-color: #0284c7;
+    background: #f0f9ff;
+    color: #0c4a6e;
+}
+.status-banner.status-300 .status-code-pill { background: #0284c7; }
+
+/* Màu cho mã 400 (Lỗi dữ liệu đầu vào / Validation) */
+.status-banner.status-400 {
+    border-left-color: #d97706;
+    background: #fffbeb;
+    color: #78350f;
+}
+.status-banner.status-400 .status-code-pill { background: #d97706; }
+
+/* Màu cho mã 404 & 500 (Không tìm thấy tài nguyên / Lỗi kết nối / Lỗi hệ thống) */
+.status-banner.status-404,
+.status-banner.status-500 {
+    border-left-color: #dc2626;
+    background: #fef2f2;
+    color: #7f1d1d;
+}
+.status-banner.status-404 .status-code-pill,
+.status-banner.status-500 .status-code-pill { background: #dc2626; }
+
+/* [MÃ: CSS-08] Bộ giao diện Code Thuần tự viết bằng CSS Grid và Flexbox (chạy khi thẻ html có class pure-mode) */
+html.pure-mode * {
+    box-sizing: border-box;
+}
+html.pure-mode body {
+    margin: 0;
+    background-color: #f4f7f6;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+html.pure-mode .container {
+    width: 100%;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+html.pure-mode .py-5 { padding-top: 32px; padding-bottom: 32px; }
+html.pure-mode .py-4 { padding-top: 20px; padding-bottom: 20px; }
+html.pure-mode .p-3 { padding: 16px; }
+html.pure-mode .p-4 { padding: 24px; }
+html.pure-mode .p-5 { padding: 32px; }
+html.pure-mode .mb-0 { margin-bottom: 0; }
+html.pure-mode .mb-1 { margin-bottom: 6px; }
+html.pure-mode .mb-2 { margin-bottom: 10px; }
+html.pure-mode .mb-3 { margin-bottom: 16px; }
+html.pure-mode .mb-4 { margin-bottom: 24px; }
+html.pure-mode .mb-5 { margin-bottom: 32px; }
+html.pure-mode .mt-1 { margin-top: 4px; }
+html.pure-mode .mt-3 { margin-top: 16px; }
+html.pure-mode .mt-4 { margin-top: 20px; }
+html.pure-mode .mt-5 { margin-top: 32px; }
+html.pure-mode .pt-3 { padding-top: 16px; }
+html.pure-mode .pt-4 { padding-top: 24px; }
+html.pure-mode .me-1 { margin-right: 6px; }
+html.pure-mode .me-2 { margin-right: 10px; }
+html.pure-mode .me-3 { margin-right: 16px; }
+html.pure-mode .ms-2 { margin-left: 10px; }
+html.pure-mode .w-100 { width: 100%; }
+html.pure-mode .h-100 { height: 100%; }
+html.pure-mode .d-none { display: none !important; }
+html.pure-mode .d-flex { display: flex; }
+html.pure-mode .flex-column { flex-direction: column; }
+html.pure-mode .flex-wrap { flex-wrap: wrap; }
+html.pure-mode .flex-grow-1 { flex-grow: 1; }
+html.pure-mode .align-items-center { align-items: center; }
+html.pure-mode .align-items-end { align-items: flex-end; }
+html.pure-mode .justify-content-between { justify-content: space-between; }
+html.pure-mode .justify-content-center { justify-content: center; }
+html.pure-mode .justify-content-around { justify-content: space-around; }
+html.pure-mode .gap-2 { gap: 10px; }
+html.pure-mode .text-center { text-align: center; }
+html.pure-mode .fw-bold { font-weight: 700; }
+html.pure-mode .small { font-size: 0.88rem; }
+html.pure-mode .text-muted { color: #6c7a89; }
+html.pure-mode .text-primary { color: #2b6cb0; }
+html.pure-mode .text-success { color: #27ae60; }
+html.pure-mode .text-warning { color: #d35400; }
+html.pure-mode .text-danger { color: #e74c3c; }
+html.pure-mode .border-top { border-top: 1px solid #e2e8f0; }
+
+/* Chia lưới 12 cột bằng CSS Grid thuần */
+html.pure-mode .row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+}
+html.pure-mode .col-md-2 { grid-column: span 2; }
+html.pure-mode .col-md-3 { grid-column: span 3; }
+html.pure-mode .col-md-4 { grid-column: span 4; }
+html.pure-mode .col-md-6 { grid-column: span 6; }
+html.pure-mode .col-md-7 { grid-column: 3 / span 8; }
+html.pure-mode .col-md-9 { grid-column: span 9; }
+html.pure-mode .col-md-12 { grid-column: span 12; }
+
+html.pure-mode .navbar {
+    background: #1e3a5f;
+    color: #ffffff;
+    padding: 14px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+html.pure-mode .navbar > .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+html.pure-mode .navbar-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1.25rem;
+    margin-right: 24px;
+}
+html.pure-mode .navbar-toggler {
+    display: none;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.6);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+html.pure-mode .navbar-toggler-icon::before { content: "☰ Menu"; }
+html.pure-mode .navbar-collapse {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+}
+html.pure-mode .navbar-nav {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    gap: 8px;
+}
+html.pure-mode .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+html.pure-mode .nav-link:hover,
+html.pure-mode .nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+html.pure-mode .card,
+html.pure-mode .welcome-banner {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+html.pure-mode .icon-box.bg-primary { background: #2b6cb0; color: #fff; }
+html.pure-mode .icon-box.bg-success { background: #27ae60; color: #fff; }
+html.pure-mode .icon-box.bg-warning { background: #f39c12; color: #fff; }
+html.pure-mode .form-label { display: block; margin-bottom: 6px; }
+html.pure-mode .form-control,
+html.pure-mode .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #ffffff;
+    color: #2c3e50;
+}
+html.pure-mode .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+html.pure-mode .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+html.pure-mode .btn-primary { background: #2b6cb0; color: #fff; }
+html.pure-mode .btn-success { background: #27ae60; color: #fff; }
+html.pure-mode .btn-danger { background: #e74c3c; color: #fff; }
+html.pure-mode .btn-outline-primary { border-color: #2b6cb0; color: #2b6cb0; background: transparent; }
+html.pure-mode .btn-outline-secondary { border-color: #94a3b8; color: #475569; background: transparent; }
+html.pure-mode .btn-outline-danger { border-color: #e74c3c; color: #e74c3c; background: transparent; }
+html.pure-mode .btn-outline-light { border-color: rgba(255,255,255,0.7); color: #fff; background: transparent; }
+html.pure-mode .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+html.pure-mode .badge.bg-primary { background: #2b6cb0; color: #fff; }
+html.pure-mode .badge.bg-success { background: #27ae60; color: #fff; }
+html.pure-mode .badge.bg-warning { background: #f39c12; color: #fff; }
+html.pure-mode .badge.bg-danger { background: #e74c3c; color: #fff; }
+html.pure-mode .badge.bg-secondary { background: #64748b; color: #fff; }
+html.pure-mode .app-footer { background: #ffffff; border-top: 1px solid #e2e8f0; margin-top: 40px; }
+
+@media (max-width: 768px) {
+    html.pure-mode .row > [class*="col-md-"] { grid-column: span 12 !important; }
+    html.pure-mode .navbar-toggler { display: block; }
+    html.pure-mode .navbar-collapse { display: none; width: 100%; flex-direction: column; align-items: flex-start; padding-top: 12px; gap: 10px; }
+    html.pure-mode .navbar-collapse.show { display: flex; }
+    html.pure-mode .navbar-nav { flex-direction: column; width: 100%; }
+}
