@@ -1,3 +1,8 @@
+// =========================================================================
+// TỆP: assets/js/main.js
+// Mục đích: Chứa các cấu hình lõi, tiện ích chung và quản lý dữ liệu LocalStorage
+// =========================================================================
+
 /* [MÃ: DL-01] Khai báo khóa lưu trữ LocalStorage, danh sách file CSS giao diện và bộ dữ liệu sách mẫu đa dạng */
 const STORAGE_KEY = 'books';
 
@@ -65,169 +70,61 @@ window.addEventListener('online', () => {
     hienThiThongBaoNgoaiLeHTML(200, 'Đã kết nối mạng trở lại (Mã 200 - Online)', 'Mọi tính năng trực tuyến như tải ảnh bìa ngoài và gửi báo cáo qua thư đã sẵn sàng.');
 });
 
-// Danh sách 12 cuốn sách mẫu đa dạng, có cuốn "Hai Con Mèo Ngồi Bên Cửa Sổ" kèm URL ảnh bìa
-const DEFAULT_BOOKS = [
-    {
-        id: "1001",
-        title: "Hai Con Mèo Ngồi Bên Cửa Sổ",
-        author: "Nguyễn Nhật Ánh",
-        description: "Chuyện tình bạn dễ thương giữa mèo Gấu và chuột Tí Hon cùng những bài thơ tình lãng mạn bên khung cửa sổ.",
-        deadline: "2026-11-12",
-        priority: "Cao",
-        status: "Đang đọc",
-        coverUrl: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1002",
-        title: "Dế Mèn Phiêu Lưu Ký",
-        author: "Tô Hoài",
-        description: "Hành trình trưởng thành đầy bài học sâu sắc về tình bạn và lòng nhân ái của chú Dế Mèn qua nhiều vùng đất.",
-        deadline: "2026-11-15",
-        priority: "Trung bình",
-        status: "Đã đọc",
-        coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1003",
-        title: "Đắc Nhân Tâm",
-        author: "Dale Carnegie",
-        description: "Cuốn sách gối đầu giường hướng dẫn nghệ thuật giao tiếp, lắng nghe và thu phục lòng người trong cuộc sống.",
-        deadline: "2026-11-25",
-        priority: "Cao",
-        status: "Đã đọc",
-        coverUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1004",
-        title: "Clean Code - Mã Sạch",
-        author: "Robert C. Martin",
-        description: "Cẩm nang viết mã nguồn rõ ràng, dễ bảo trì, đặt tên biến chuẩn và tối ưu hàm dành cho dân lập trình.",
-        deadline: "2026-12-01",
-        priority: "Cao",
-        status: "Đang đọc",
-        coverUrl: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1005",
-        title: "Tuổi Trẻ Đáng Giá Bao Nhiêu",
-        author: "Rosie Nguyễn",
-        description: "Những chia sẻ truyền cảm hứng giúp người trẻ định hướng việc tự học, đi trải nghiệm và theo đuổi ước mơ.",
-        deadline: "2026-11-20",
-        priority: "Thấp",
-        status: "Đã đọc",
-        coverUrl: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1006",
-        title: "Tôi Thấy Hoa Vàng Trên Cỏ Xanh",
-        author: "Nguyễn Nhật Ánh",
-        description: "Những trang viết trong trẻo về tuổi thơ nơi làng quê nghèo với tình anh em và những rung động đầu đời.",
-        deadline: "2026-12-15",
-        priority: "Trung bình",
-        status: "Chưa đọc",
-        coverUrl: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1007",
-        title: "Nhà Giả Kim",
-        author: "Paulo Coelho",
-        description: "Câu chuyện triết lý về chàng chăn cừu Santiago trên con đường vượt sa mạc theo đuổi vận mệnh của đời mình.",
-        deadline: "2026-11-18",
-        priority: "Cao",
-        status: "Đã đọc",
-        coverUrl: "https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1008",
-        title: "JavaScript: The Good Parts",
-        author: "Douglas Crockford",
-        description: "Khám phá những tinh hoa cốt lõi của ngôn ngữ JavaScript giúp viết code web mượt mà và ít lỗi hơn.",
-        deadline: "2027-01-10",
-        priority: "Trung bình",
-        status: "Chưa đọc",
-        coverUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1009",
-        title: "Sapiens: Lược Sử Loài Người",
-        author: "Yuval Noah Harari",
-        description: "Bức tranh toàn cảnh về lịch sử tiến hóa và phát triển của văn minh nhân loại từ thời cổ đại đến hiện đại.",
-        deadline: "2026-12-05",
-        priority: "Cao",
-        status: "Đang đọc",
-        coverUrl: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1010",
-        title: "Cây Cam Ngọt Của Tôi",
-        author: "José Mauro de Vasconcelos",
-        description: "Câu chuyện chạm đến trái tim về cậu bé Zezé tinh nghịch nhưng giàu tình cảm và cây cam ngọt sau vườn.",
-        deadline: "2026-12-22",
-        priority: "Trung bình",
-        status: "Chưa đọc",
-        coverUrl: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-        id: "1011",
-        title: "Muôn Kiếp Nhân Sinh",
-        author: "Nguyên Phong",
-        description: "Những câu chuyện tiền kiếp kỳ lạ giúp người đọc chiêm nghiệm sâu sắc về luật nhân quả trong đời sống.",
-        deadline: "2027-01-20",
-        priority: "Thấp",
-        status: "Chưa đọc",
-        coverUrl: ""
-    },
-    {
-        id: "1012",
-        title: "Không Diệt Không Sinh Đừng Sợ Hãi",
-        author: "Thích Nhất Hạnh",
-        description: "Những lời giảng nhẹ nhàng, sâu lắng giúp tâm hồn bình an và vượt qua nỗi sợ hãi trước những biến cố.",
-        deadline: "2027-02-28",
-        priority: "Thấp",
-        status: "Chưa đọc",
-        coverUrl: ""
-    }
-];
+// =========================================================================
+// [BẢN CẬP NHẬT] KHAI BÁO CÁC HÀM XỬ LÝ GIAO DIỆN TOÀN CỤC (GLOBAL SCOPE)
+// Định nghĩa trên đối tượng window để các tệp settings.js, gemini-service.js đều có thể gọi tới
+// =========================================================================
 
-/* [MÃ: DL-02] Hàm applySavedTheme: Đọc giao diện đã lưu trong máy rồi đổi file CSS tương ứng */
-function applySavedTheme() {
-    const savedTheme = localStorage.getItem('app_theme') || 'default';
+/* [MÃ: DL-02] Hàm applyTheme: Đổi giao diện và ghi đè lên stylesheet */
+window.applyTheme = function(themeName) {
+    localStorage.setItem('app_theme', themeName);
     const linkElement = document.getElementById('themeStylesheet');
     if (!linkElement) return;
 
-    if (savedTheme === 'pure') {
+    if (themeName === 'pure') {
         linkElement.removeAttribute('href');
         document.documentElement.classList.add('pure-mode');
     } else {
-        linkElement.href = THEME_URLS[savedTheme] || THEME_URLS['default'];
+        linkElement.href = THEME_URLS[themeName] || THEME_URLS['default'];
         document.documentElement.classList.remove('pure-mode');
     }
-    ghiLogF12('GIAO DIỆN', 'Đã áp dụng bộ giao diện:', { maGiaoDien: savedTheme, cheDoCodeThuan: savedTheme === 'pure' });
-}
+    ghiLogF12('GIAO DIỆN', 'Đã áp dụng bộ giao diện:', { maGiaoDien: themeName, cheDoCodeThuan: themeName === 'pure' });
+};
 
-/* [MÃ: DL-03] Hàm applySavedFont: Đọc kiểu chữ đã lưu rồi gắn vào thẻ html để CSS tự đổi font */
-function applySavedFont() {
+// Hàm applySavedTheme gọi lại applyTheme để tự khởi chạy lúc mở trang
+window.applySavedTheme = function() {
+    const savedTheme = localStorage.getItem('app_theme') || 'default';
+    window.applyTheme(savedTheme);
+};
+
+/* [MÃ: DL-03] Hàm applyFont: Đổi font chữ hiển thị */
+window.applyFont = function(fontName) {
+    localStorage.setItem('app_font', fontName);
+    document.documentElement.setAttribute('data-font', fontName);
+    ghiLogF12('FONT CHỮ', 'Đã nạp kiểu chữ:', { maFont: fontName });
+};
+
+// Hàm applySavedFont gọi lại applyFont để tự khởi chạy lúc mở trang
+window.applySavedFont = function() {
     const savedFont = localStorage.getItem('app_font') || 'priority-regular';
-    document.documentElement.setAttribute('data-font', savedFont);
-    ghiLogF12('FONT CHỮ', 'Đã nạp kiểu chữ:', { maFont: savedFont });
-}
+    window.applyFont(savedFont);
+};
 
-/* [MÃ: DL-04] Hàm applyIconPack: Đổi qua lại giữa Bộ 1 (bo1), Bộ 2 (bo2) trong thư mục assets/img/ và Bộ mặc định web (bo4) */
-function applyIconPack() {
-    let pack = localStorage.getItem('app_icon_pack') || 'bo1';
-    if (pack !== 'bo1' && pack !== 'bo2' && pack !== 'bo4') {
-        pack = 'bo1';
-        localStorage.setItem('app_icon_pack', 'bo1');
+/* [MÃ: DL-04] Hàm applyIconPack: Đồng bộ bộ biểu tượng trên trang */
+window.applyIconPack = function(packName) {
+    if (packName) {
+        localStorage.setItem('app_icon_pack', packName);
     }
+    const currentPack = localStorage.getItem('app_icon_pack') || 'bo1';
 
-    if (pack === 'bo4') {
+    if (currentPack === 'bo4') {
         document.documentElement.classList.add('use-default-icons');
     } else {
         document.documentElement.classList.remove('use-default-icons');
         document.querySelectorAll('.dynamic-icon').forEach(img => {
             const iconName = img.getAttribute('data-icon');
             if (iconName) {
-                img.src = `assets/img/${pack}/${iconName}`;
+                img.src = `assets/img/${currentPack}/${iconName}`;
                 img.onerror = function() {
                     this.style.display = 'none';
                     const fallbackIcon = this.previousElementSibling;
@@ -239,14 +136,14 @@ function applyIconPack() {
             }
         });
     }
-    ghiLogF12('BIỂU TƯỢNG', 'Đã đồng bộ gói biểu tượng:', { boIconDangDung: pack });
-}
+    ghiLogF12('BIỂU TƯỢNG', 'Đã đồng bộ gói biểu tượng:', { boIconDangDung: currentPack });
+};
 
-/* [MÃ: DL-05] Hàm applyCustomVisuals & compressImage: Cài ảnh nền cá nhân và nén ảnh qua thẻ Canvas cho nhẹ bộ nhớ */
-function applyCustomVisuals() {
-    const bg = localStorage.getItem('app_bg');
-    if (bg) {
-        document.body.style.backgroundImage = `url(${bg})`;
+/* [MÃ: DL-05] Hàm applyCustomVisuals & applySavedBackground: Đọc ảnh từ localStorage làm nền */
+window.applySavedBackground = function() {
+    const bgData = localStorage.getItem('app_bg');
+    if (bgData) {
+        document.body.style.backgroundImage = `url(${bgData})`;
         document.body.style.backgroundSize = 'cover';
         document.body.style.backgroundPosition = 'center';
         document.body.style.backgroundAttachment = 'fixed';
@@ -257,9 +154,13 @@ function applyCustomVisuals() {
         document.body.classList.remove('has-bg');
         ghiLogF12('HÌNH NỀN', 'Đang sử dụng nền mặc định của giao diện');
     }
-}
+};
 
-function compressImage(file, maxWidth, maxHeight, quality, callback) {
+window.applyCustomVisuals = function() {
+    window.applySavedBackground();
+};
+
+window.compressImage = function(file, maxWidth, maxHeight, quality, callback) {
     ghiLogF12('NÉN ẢNH', 'Bắt đầu nén tệp ảnh tải lên:', { tenTep: file.name, dungLuongGocKB: Math.round(file.size / 1024) });
     const reader = new FileReader();
     reader.onerror = function() {
@@ -296,21 +197,21 @@ function compressImage(file, maxWidth, maxHeight, quality, callback) {
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
-}
+};
 
 /* [MÃ: DL-06] Hàm getBooks & saveBooks: Đọc và ghi danh sách sách vào LocalStorage có bắt ngoại lệ tràn bộ nhớ */
 function getBooks() {
     try {
         const rawData = localStorage.getItem(STORAGE_KEY);
         if (!rawData) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_BOOKS));
-            ghiLogF12('DỮ LIỆU', 'Khởi tạo lần đầu: Đã nạp 12 sách mẫu vào LocalStorage', { soLuongMau: DEFAULT_BOOKS.length });
-            return [...DEFAULT_BOOKS];
+            // Không nạp dữ liệu mẫu nữa, khởi tạo mảng rỗng
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+            return []; // Trả về mảng rỗng
         }
-        const parsed = JSON.parse(rawData);
-        return Array.isArray(parsed) ? parsed : [];
+        return JSON.parse(rawData);
     } catch (e) {
-        hienThiThongBaoNgoaiLeHTML(500, 'Lỗi đọc dữ liệu bộ nhớ (Mã 500)', 'Dữ liệu LocalStorage bị hỏng định dạng JSON, hệ thống tạm trả về mảng rỗng.');
+        hienThiThongBaoNgoaiLeHTML(500, 'Lỗi đọc bộ nhớ (Mã 500)', e.message);
+        // Nếu lỗi, để web không sập, trả về mảng rỗng
         return [];
     }
 }
@@ -322,7 +223,9 @@ function saveBooks(booksArray) {
         return true;
     } catch (e) {
         hienThiThongBaoNgoaiLeHTML(500, 'Bộ nhớ trình duyệt đã đầy (Mã 500 - QuotaExceeded)', 'Dung lượng LocalStorage vượt quá giới hạn 5MB. Hãy xóa bớt hình nền hoặc tải tệp sao lưu.');
-        Swal.fire('Tràn bộ nhớ (Mã 500)', 'Bộ nhớ trình duyệt đã đầy, vui lòng gỡ hình nền cá nhân hoặc xóa bớt dữ liệu cũ.', 'error');
+        if(typeof Swal !== 'undefined') {
+            Swal.fire('Tràn bộ nhớ (Mã 500)', 'Bộ nhớ trình duyệt đã đầy, vui lòng gỡ hình nền cá nhân hoặc xóa bớt dữ liệu cũ.', 'error');
+        }
         return false;
     }
 }
@@ -331,10 +234,10 @@ function saveBooks(booksArray) {
 document.addEventListener('DOMContentLoaded', () => {
     ghiLogF12('KHỞI ĐỘNG TRANG', `Đang mở trang: ${document.title}`, { duongDan: window.location.pathname });
 
-    applySavedTheme();
-    applySavedFont();
-    applyIconPack();
-    applyCustomVisuals();
+    window.applySavedTheme();
+    window.applySavedFont();
+    window.applyIconPack();
+    window.applyCustomVisuals();
 
     // Nút đóng thu gọn khung thông báo trạng thái trên màn hình
     const btnHideStatusBox = document.getElementById('btnHideStatusBox');
@@ -376,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (books.length === 0) {
                 hienThiThongBaoNgoaiLeHTML(400, 'Không thể sao lưu tủ sách trống (Mã 400)', 'Hiện chưa có cuốn sách nào trong tủ để xuất ra tệp JSON.');
-                Swal.fire('Thông báo (Mã 400)', 'Tủ sách đang trống, chưa có dữ liệu để sao lưu.', 'info');
+                if(typeof Swal !== 'undefined') Swal.fire('Thông báo (Mã 400)', 'Tủ sách đang trống, chưa có dữ liệu để sao lưu.', 'info');
                 return;
             }
             const dataStr = JSON.stringify(books, null, 2);
@@ -393,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             URL.revokeObjectURL(url);
 
             hienThiThongBaoNgoaiLeHTML(200, 'Xuất tệp sao lưu thành công (Mã 200)', `Đã tải tệp ${fileName} gồm ${books.length} cuốn sách về máy tính.`);
-            Swal.fire('Thành công (Mã 200)', 'Đã tải xuống tệp sao lưu tủ sách.', 'success');
+            if(typeof Swal !== 'undefined') Swal.fire('Thành công (Mã 200)', 'Đã tải xuống tệp sao lưu tủ sách.', 'success');
         });
     }
 
@@ -412,13 +315,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (Array.isArray(jsonData)) {
                         saveBooks(jsonData);
                         hienThiThongBaoNgoaiLeHTML(200, 'Phục hồi dữ liệu thành công (Mã 200)', `Đã nạp lại ${jsonData.length} cuốn sách từ tệp ${file.name}.`);
-                        Swal.fire('Thành công (Mã 200)', `Đã khôi phục ${jsonData.length} cuốn sách!`, 'success').then(() => location.reload());
+                        if(typeof Swal !== 'undefined') Swal.fire('Thành công (Mã 200)', `Đã khôi phục ${jsonData.length} cuốn sách!`, 'success').then(() => location.reload());
                     } else {
                         throw new Error('Dữ liệu trong tệp không phải là danh sách mảng');
                     }
                 } catch (err) {
                     hienThiThongBaoNgoaiLeHTML(400, 'Tệp sao lưu bị lỗi cấu trúc (Mã 400)', `Tệp ${file.name} không đúng chuẩn JSON của Tủ Sách Cá Nhân.`);
-                    Swal.fire('Lỗi định dạng (Mã 400)', 'Tệp sao lưu không đúng định dạng.', 'error');
+                    if(typeof Swal !== 'undefined') Swal.fire('Lỗi định dạng (Mã 400)', 'Tệp sao lưu không đúng định dạng.', 'error');
                 }
             };
             reader.readAsText(file);

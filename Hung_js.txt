@@ -1,0 +1,195 @@
+/* [MÃ: DL-01] Khai báo khóa lưu trữ LocalStorage, danh sách file CSS giao diện và bộ dữ liệu sách mẫu đa dạng */
+const STORAGE_KEY = 'books';
+
+const THEME_URLS = {
+    'pure': '',
+    'default': 'vendor/bootstrap/bootstrap.min.css',
+    'flatly': 'vendor/bootswatch/flatly.min.css',
+    'cyborg': 'vendor/bootswatch/cyborg.min.css',
+    'sketchy': 'vendor/bootswatch/sketchy.min.css',
+    'morph': 'vendor/bootswatch/morph.min.css'
+};
+
+============================================
+============================================
+
+/* [MÃ: DL-06] Hàm getBooks & saveBooks: Đọc và ghi danh sách sách vào LocalStorage có bắt ngoại lệ tràn bộ nhớ */
+function getBooks() {
+    try {
+        const rawData = localStorage.getItem(STORAGE_KEY);
+        if (!rawData) {
+            // Không nạp dữ liệu mẫu nữa, khởi tạo mảng rỗng
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+            return []; // Trả về mảng rỗng
+        }
+        return JSON.parse(rawData);
+    } catch (e) {
+        hienThiThongBaoNgoaiLeHTML(500, 'Lỗi đọc bộ nhớ (Mã 500)', e.message);
+        // Nếu lỗi, để web không sập, trả về mảng rỗng
+        return [];
+    }
+}
+
+
+
+=========================================
+=========================================
+
+
+/* [MÃ: DL-07] Gắn sự kiện cho các nút trên thanh điều hướng và nút đóng khung thông báo trạng thái */
+document.addEventListener('DOMContentLoaded', () => {
+    ghiLogF12('KHỞI ĐỘNG TRANG', `Đang mở trang: ${document.title}`, { duongDan: window.location.pathname });
+
+    window.applySavedTheme();
+    window.applySavedFont();
+    window.applyIconPack();
+    window.applyCustomVisuals();
+
+    // Nút đóng thu gọn khung thông báo trạng thái trên màn hình
+    const btnHideStatusBox = document.getElementById('btnHideStatusBox');
+    if (btnHideStatusBox) {
+        btnHideStatusBox.addEventListener('click', () => {
+            document.getElementById('systemStatusBox').classList.add('hidden-banner');
+            ghiLogF12('KHUNG TRẠNG THÁI', 'Người dùng bấm ẩn thanh thông báo trạng thái trên màn hình');
+        });
+    }
+
+    // Nếu mở trang lúc đang mất mạng thì báo ngay trên thanh trạng thái
+    if (!navigator.onLine) {
+        hienThiThongBaoNgoaiLeHTML(300, 'Đang chạy ở chế độ Ngoại tuyến (Mã 300 - Offline Mode)', 'Không có Internet nhưng toàn bộ tính năng quản lý sách, font chữ và bìa SVG vẫn hoạt động 100%.');
+    }
+
+    document.querySelectorAll('.nav-link, .navbar-brand').forEach(link => {
+        link.addEventListener('click', () => {
+            ghiLogF12('ĐIỀU HƯỚNG', `Người dùng bấm chuyển sang trang: ${link.innerText.trim()}`, { href: link.getAttribute('href') });
+        });
+    });
+
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navbarNav = document.getElementById('navbarNav');
+    if (mobileMenuBtn && navbarNav) {
+        mobileMenuBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('pure-mode')) {
+                navbarNav.classList.toggle('show');
+            }
+            ghiLogF12('MENU ĐIỆN THOẠI', 'Bấm nút đóng/mở menu trên màn hình nhỏ');
+        });
+    }
+
+    // Nút Tải tệp sao lưu (.json)
+    const btnExport = document.getElementById('btnExportJSON');
+    if (btnExport) {
+        btnExport.addEventListener('click', () => {
+            const books = getBooks();
+            ghiLogF12('SAO LƯU DỮ LIỆU', 'Bấm nút Tải tệp sao lưu JSON', { soLuongSachSaoLuu: books.length });
+
+            if (books.length === 0) {
+                hienThiThongBaoNgoaiLeHTML(400, 'Không thể sao lưu tủ sách trống (Mã 400)', 'Hiện chưa có cuốn sách nào trong tủ để xuất ra tệp JSON.');
+                if(typeof Swal !== 'undefined') Swal.fire('Thông báo (Mã 400)', 'Tủ sách đang trống, chưa có dữ liệu để sao lưu.', 'info');
+                return;
+            }
+            const dataStr = JSON.stringify(books, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const fileName = `tu-sach-ca-nhan-${new Date().toISOString().slice(0, 10)}.json`;
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            hienThiThongBaoNgoaiLeHTML(200, 'Xuất tệp sao lưu thành công (Mã 200)', `Đã tải tệp ${fileName} gồm ${books.length} cuốn sách về máy tính.`);
+            if(typeof Swal !== 'undefined') Swal.fire('Thành công (Mã 200)', 'Đã tải xuống tệp sao lưu tủ sách.', 'success');
+        });
+    }
+
+    // Nút Phục hồi dữ liệu từ tệp (.json)
+    const btnImport = document.getElementById('btnImportJSON');
+    if (btnImport) {
+        btnImport.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            ghiLogF12('PHỤC HỒI DỮ LIỆU', 'Đã chọn tệp JSON để khôi phục:', { tenTep: file.name, kichThuocBytes: file.size });
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const jsonData = JSON.parse(event.target.result);
+                    if (Array.isArray(jsonData)) {
+                        saveBooks(jsonData);
+                        hienThiThongBaoNgoaiLeHTML(200, 'Phục hồi dữ liệu thành công (Mã 200)', `Đã nạp lại ${jsonData.length} cuốn sách từ tệp ${file.name}.`);
+                        if(typeof Swal !== 'undefined') Swal.fire('Thành công (Mã 200)', `Đã khôi phục ${jsonData.length} cuốn sách!`, 'success').then(() => location.reload());
+                    } else {
+                        throw new Error('Dữ liệu trong tệp không phải là danh sách mảng');
+                    }
+                } catch (err) {
+                    hienThiThongBaoNgoaiLeHTML(400, 'Tệp sao lưu bị lỗi cấu trúc (Mã 400)', `Tệp ${file.name} không đúng chuẩn JSON của Tủ Sách Cá Nhân.`);
+                    if(typeof Swal !== 'undefined') Swal.fire('Lỗi định dạng (Mã 400)', 'Tệp sao lưu không đúng định dạng.', 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+    }
+});
+
+
+
+/* [MÃ: DL-08] Hàm hienThiThongBaoNgoaiLeHTML: Hiển thị mã trạng thái (200, 300, 400, 404, 500) trực tiếp lên khung HTML trên màn hình */
+function hienThiThongBaoNgoaiLeHTML(maCode, tieuDe, chiTiet) {
+    const statusBox = document.getElementById('systemStatusBox');
+    const codeBadge = document.getElementById('statusCodeBadge');
+    const titleText = document.getElementById('statusTitleText');
+    const detailText = document.getElementById('statusDetailText');
+
+    // Ghi log đồng thời vào F12 để vừa thấy trên màn hình vừa thấy trong Console
+    ghiLogF12(`TRẠNG THÁI MÃ ${maCode}`, tieuDe, chiTiet);
+
+    if (!statusBox || !codeBadge || !titleText || !detailText) return;
+
+    // Xóa các class màu cũ rồi gắn class màu tương ứng với mã trạng thái mới
+    statusBox.classList.remove('hidden-banner', 'status-200', 'status-300', 'status-400', 'status-404', 'status-500');
+
+    let nhomClass = 'status-200';
+    if (maCode >= 300 && maCode < 400) nhomClass = 'status-300';
+    else if (maCode === 400) nhomClass = 'status-400';
+    else if (maCode === 404) nhomClass = 'status-404';
+    else if (maCode >= 500) nhomClass = 'status-500';
+
+    statusBox.classList.add(nhomClass);
+    codeBadge.innerText = `MÃ ${maCode}`;
+    titleText.innerText = tieuDe;
+    detailText.innerText = chiTiet;
+}
+
+// Tự động bắt mọi lỗi cú pháp hoặc ngoại lệ bất ngờ trong trang và hiện lên khung HTML trên màn hình
+window.addEventListener('error', (event) => {
+    if (event && event.message) {
+        hienThiThongBaoNgoaiLeHTML(500, 'Phát hiện ngoại lệ hệ thống (Mã 500)', event.message);
+    }
+});
+
+// Tự động phát hiện khi máy tính mất mạng hoặc có mạng trở lại để báo ngay trên giao diện HTML
+window.addEventListener('offline', () => {
+    hienThiThongBaoNgoaiLeHTML(500, 'Mất kết nối mạng Internet (Mã 500 - Offline)', 'Đã chuyển sang chế độ локаl (Offline). Bạn vẫn thêm, sửa, xóa sách và dùng bìa tự vẽ bình thường.');
+});
+
+window.addEventListener('online', () => {
+    hienThiThongBaoNgoaiLeHTML(200, 'Đã kết nối mạng trở lại (Mã 200 - Online)', 'Mọi tính năng trực tuyến như tải ảnh bìa ngoài và gửi báo cáo qua thư đã sẵn sàng.');
+});
+
+
+
+
+
+
+
+
+
+
+-============================================
+
+[MÃ: GD-21] Khởi tạo Khung Chat nổi & Luồng sự kiện (gemini-service.js)   if (document.getElementById('aiFloatingWidget')) return;: Chốt chặn an toàn, đảm bảo không bao giờ vẽ trùng 2 khung chat trên cùng 1 trang.   document.body.insertAdjacentHTML('beforeend', widgetHTML);: Chèn toàn bộ khối HTML của nút nổi và cửa sổ chat vào sát cuối thẻ <body> mà không làm ảnh hưởng hay khởi tạo lại các phần tử DOM khác đang có trên trang.   const appendMessage = (text, sender = 'bot') => { ... div.innerText = text; ... msgContainer.scrollTop = msgContainer.scrollHeight; }: Hàm tạo bong bóng tin nhắn. Dùng div.innerText = text (thay vì innerHTML) để chống lỗ hổng XSS (nếu người dùng hoặc AI trả về thẻ <script>, nó chỉ hiện ra chữ thuần chứ không thực thi mã độc), sau đó tự động cuộn thanh trượt xuống đáy khung chat (scrollTop = scrollHeight).   document.querySelectorAll('.ai-quick-prompt').forEach(...): Khi bấm vào 1 trong 3 nút gợi ý nhanh (Đề xuất sách, Đổi giao diện, Viết & Gửi mail), code tự động chép câu lệnh mẫu trong data-prompt vào ô nhập liệu và phát sự kiện chatForm.dispatchEvent(new Event('submit')) để gửi đi ngay lập tức.   Trong sự kiện chatForm.addEventListener('submit', async (e) => { ... }):   e.preventDefault();: Chặn hành vi tải lại trang mặc định của thẻ <form>.   Khóa nút gửi và ô nhập (btnSend.disabled = true; chatInput.disabled = true;) trong lúc chờ AI trả lời để chống người dùng bấm liên tục (Spam click), và mở khóa lại trong khối finally { ... } (luôn chạy dù thành công hay thất bại).

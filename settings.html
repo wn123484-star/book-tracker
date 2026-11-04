@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tùy chỉnh - Tủ Sách Cá Nhân</title>
 
-    <!-- [MÃ: GD-01] Khúc này đọc nhanh giao diện, font chữ và bộ biểu tượng từ LocalStorage ngay khi mở trang -->
+    <!-- [MÃ: GD-01] Đọc nhanh giao diện, kiểu chữ và bộ biểu tượng từ LocalStorage ngay khi mở trang -->
     <link id="themeStylesheet" href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <script>
         (function() {
@@ -37,6 +37,7 @@
     </script>
     <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="vendor/emailjs/email.min.js"></script>
 </head>
 <body>
 
@@ -73,7 +74,7 @@
                 <span id="statusCodeBadge" class="status-code-pill">MÃ 200</span>
                 <div class="status-text-group">
                     <strong id="statusTitleText">Đã đồng bộ cấu hình cá nhân</strong>
-                    <span id="statusDetailText" class="status-detail-sub">Bạn có thể đổi màu giao diện, kiểu chữ, bộ biểu tượng hoặc kiểm thử các mã trạng thái kết nối bên dưới.</span>
+                    <span id="statusDetailText" class="status-detail-sub">Bạn có thể đổi màu giao diện, kiểu chữ, cấu hình AI Gemini hoặc kiểm thử mã trạng thái bên dưới.</span>
                 </div>
             </div>
             <button type="button" class="status-close-btn" id="btnHideStatusBox" title="Thu gọn thông báo">×</button>
@@ -83,16 +84,16 @@
     <!-- [MÃ: GD-11] Khung nội dung chính trang Tùy chỉnh -->
     <main class="container py-4">
         <div class="row justify-content-center">
-            <div class="col-md-7">
+            <div class="col-md-8 col-lg-7">
                 <div class="card shadow-sm border-0 rounded-4 bg-body" id="settingsCard">
-                    <div class="card-body p-5">
+                    <div class="card-body p-4 p-md-5">
 
                         <h4 class="fw-bold mb-4 text-center">
                             <i class="bi bi-palette text-primary me-2 default-icon"></i>
                             <img data-icon="icon-palette.png" class="title-icon me-2 dynamic-icon" alt="">Tùy chỉnh Phong cách Tủ sách
                         </h4>
 
-                        <!-- [MÃ: GD-12] Hộp chọn Màu sắc & Bố cục Giao diện (#themeSelector): Có đủ Giao diện Code Thuần và 5 giao diện màu sắc -->
+                        <!-- [MÃ: GD-12] Hộp chọn Màu sắc & Bố cục Giao diện (#themeSelector) -->
                         <div class="mb-3" id="boxThemeSetting">
                             <label class="form-label fw-bold" for="themeSelector">Chọn màu sắc và bố cục giao diện</label>
                             <select class="form-select form-select-lg" id="themeSelector">
@@ -105,7 +106,7 @@
                             </select>
                         </div>
 
-                        <!-- [MÃ: GD-13] Hộp chọn Kiểu chữ hiển thị (#fontSelector): 2 Font ưu tiên và các Font chi tiết trong thư mục static -->
+                        <!-- [MÃ: GD-13] Hộp chọn Kiểu chữ hiển thị (#fontSelector) -->
                         <div class="mb-3" id="boxFontSetting">
                             <label class="form-label fw-bold" for="fontSelector">Chọn kiểu chữ hiển thị</label>
                             <select class="form-select form-select-lg" id="fontSelector">
@@ -125,7 +126,7 @@
                             </select>
                         </div>
 
-                        <!-- [MÃ: GD-14] Hộp chọn Bộ biểu tượng trang trí (#iconPackSelector): Đã bỏ Bộ 3, chỉ giữ Bộ 1, Bộ 2 và Bộ mặc định web -->
+                        <!-- [MÃ: GD-14] Hộp chọn Bộ biểu tượng trang trí (#iconPackSelector) -->
                         <div class="mb-4" id="boxIconSetting">
                             <label class="form-label fw-bold" for="iconPackSelector">Chọn bộ biểu tượng trang trí</label>
                             <select class="form-select form-select-lg" id="iconPackSelector">
@@ -148,26 +149,87 @@
                             Khôi phục nền mặc định
                         </button>
 
+                        <!-- [MÃ: GD-20] Khu vực cấu hình Trợ lý AI Gemini (Nhập Key, lấy danh sách Model khả dụng, chỉnh thông số AI) -->
+                        <div id="aiSettingsSection" class="settings-panel mt-5 pt-4 border-top">
+                            <h5 class="fw-bold mb-3 text-center">
+                                <i class="bi bi-robot text-primary me-2"></i>Cài đặt Trợ lý AI (Google Gemini)
+                            </h5>
+                            <p class="small text-muted text-center mb-4">
+                                Dùng để tạo ghi chú sách tự động gửi qua thư và trò chuyện trực tiếp ở góc phải màn hình.
+                            </p>
+
+                            <form id="aiConfigForm">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold" for="gemini-api-key">Khóa kết nối Gemini API Key <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="password" class="form-control" id="gemini-api-key" placeholder="Nhập Gemini API Key (AIzaSy...)" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="btnToggleKeyVisibility" title="Hiện/Ẩn khóa">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-success fw-semibold" type="button" id="btnFetchModels">
+                                            <i class="bi bi-cloud-download me-1"></i>1. Lấy DS Mô hình
+                                        </button>
+                                    </div>
+                                    <div class="form-text small" id="modelFetchStatus">Nhập API Key rồi bấm "Lấy DS Mô hình" để tải các mô hình khả dụng.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold" for="aiModelSelect">Chọn Mô hình AI khả dụng</label>
+                                    <select class="form-select form-select-sm" id="aiModelSelect">
+                                        <option value="models/gemini-1.5-flash">Gemini 1.5 Flash (Mặc định - Nhanh & Ổn định)</option>
+                                        <option value="models/gemini-2.0-flash">Gemini 2.0 Flash</option>
+                                    </select>
+                                </div>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label small fw-bold d-flex justify-content-between" for="aiTemperature">
+                                            <span>Độ sáng tạo (Temperature):</span>
+                                            <span class="badge bg-primary" id="tempValueLabel">0.7</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="aiTemperature" min="0" max="1" step="0.1" value="0.7">
+                                        <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
+                                            <span>0.0 (Chính xác)</span>
+                                            <span>1.0 (Bay bổng)</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label small fw-bold" for="aiMaxTokens">Độ dài phản hồi tối đa (Tokens)</label>
+                                        <input type="number" class="form-control form-control-sm" id="aiMaxTokens" min="100" max="4096" step="50" value="800">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold" for="aiSystemPrompt">Chỉ dẫn vai trò cho AI (System Prompt)</label>
+                                    <textarea class="form-control form-control-sm" id="aiSystemPrompt" rows="2" placeholder="Ví dụ: Bạn là trợ lý đọc sách thân thiện, trả lời ngắn gọn bằng tiếng Việt..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100" id="btnSaveAIConfig">
+                                    <i class="bi bi-check2-circle me-1"></i>Lưu Key & Cấu hình AI
+                                </button>
+                            </form>
+                        </div>
+
                         <!-- [MÃ: GD-16] Khung biểu mẫu cài đặt nhận báo cáo qua thư điện tử (#emailConfigForm) -->
                         <h5 class="fw-bold mb-4 text-center mt-5 pt-4 border-top">
                             <i class="bi bi-envelope-at text-primary me-2 default-icon"></i>
-                            <img data-icon="icon-email-config.png" class="title-icon me-2 dynamic-icon" alt="">Cài đặt nhận báo cáo qua thư điện tử
+                            <img data-icon="icon-email-config.png" class="title-icon me-2 dynamic-icon" alt="">Cài đặt nhận báo cáo qua thư điện tử (EmailJS)
                         </h5>
                         <form id="emailConfigForm">
                             <div class="mb-3">
-                                <label class="form-label small text-muted" for="targetEmail">Địa chỉ thư điện tử nhận báo cáo</label>
+                                <label class="form-label small text-muted" for="targetEmail">Địa chỉ thư điện tử nhận báo cáo & ghi chú AI</label>
                                 <input type="email" class="form-control form-control-sm" id="targetEmail" placeholder="vidu@gmail.com" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small text-muted" for="emailPublicKey">Mã kết nối tài khoản (Mã công khai)</label>
+                                <label class="form-label small text-muted" for="emailPublicKey">Mã kết nối tài khoản (Public Key)</label>
                                 <input type="text" class="form-control form-control-sm" id="emailPublicKey" placeholder="Nhập mã Public Key..." required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small text-muted" for="emailServiceId">Mã dịch vụ gửi thư</label>
+                                <label class="form-label small text-muted" for="emailServiceId">Mã dịch vụ gửi thư (Service ID)</label>
                                 <input type="text" class="form-control form-control-sm" id="emailServiceId" placeholder="Nhập mã Service ID..." required>
                             </div>
                             <div class="mb-4">
-                                <label class="form-label small text-muted" for="emailTemplateId">Mã mẫu thư báo cáo</label>
+                                <label class="form-label small text-muted" for="emailTemplateId">Mã mẫu thư báo cáo (Template ID - Có biến {{message}} hoặc {{ai_generated_note}})</label>
                                 <input type="text" class="form-control form-control-sm" id="emailTemplateId" placeholder="Nhập mã Template ID..." required>
                             </div>
                             <button type="submit" class="btn btn-outline-primary w-100">
@@ -175,7 +237,7 @@
                             </button>
                         </form>
 
-                        <!-- [MÃ: GD-19] Khu vực Kiểm thử & Mô phỏng Ngoại lệ / Mã trạng thái kết nối (200, 300, 400, 404, 500) ngay trên giao diện -->
+                        <!-- [MÃ: GD-19] Khu vực Kiểm thử & Mô phỏng Ngoại lệ / Mã trạng thái kết nối (200, 300, 400, 404, 500) -->
                         <h5 class="fw-bold mb-3 text-center mt-5 pt-4 border-top">
                             <i class="bi bi-shield-check text-primary me-2"></i>Kiểm tra & Mô phỏng Thông báo Trạng thái
                         </h5>
@@ -227,6 +289,7 @@
     <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="vendor/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/gemini-service.js"></script>
     <script src="assets/js/settings.js"></script>
 </body>
 </html>

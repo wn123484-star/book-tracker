@@ -83,9 +83,14 @@
     </div>
 
     <main class="container py-4">
-        <div class="welcome-banner mb-4 p-4 rounded-4 shadow-sm bg-body">
-            <h3 class="fw-bold mb-1">Không gian Tủ Sách Cá Nhân</h3>
-            <p class="text-muted mb-0">Theo dõi tiến độ đọc sách mỗi ngày, đặt mục tiêu hoàn thành và lưu giữ cảm nhận riêng của bạn.</p>
+        <div class="welcome-banner mb-4 p-4 rounded-4 shadow-sm bg-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h3 class="fw-bold mb-1">Không gian Tủ Sách Cá Nhân</h3>
+                <p class="text-muted mb-0">Theo dõi tiến độ đọc sách mỗi ngày, đặt mục tiêu hoàn thành và trò chuyện cùng Trợ lý AI.</p>
+            </div>
+            <a href="settings.html#aiSettingsSection" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-robot me-1"></i>Cấu hình Gemini AI
+            </a>
         </div>
 
         <!-- [MÃ: GD-03] 3 hộp thống kê số lượng sách: Tổng số sách (#totalBooks), Đã đọc (#readBooks), Đang/Chưa đọc (#unreadBooks) -->
@@ -181,6 +186,7 @@
     <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="vendor/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/gemini-service.js"></script>
 
     <!-- [MÃ: NV-01] Đoạn xử lý đếm số lượng sách, vẽ biểu đồ Chart.js và bắt ngoại lệ khi gửi Email báo cáo ở Trang chủ -->
     <script>

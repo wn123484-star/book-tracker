@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ - Tủ Sách Cá Nhân</title>
+
+    <!-- [MÃ: GD-01] Khúc này chạy ngay lập tức khi vừa mở trang để đọc giao diện, kiểu chữ và bộ icon từ máy lên trước, giúp màn hình không bị chớp trắng -->
+    <link id="themeStylesheet" href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <script>
+        (function() {
+            const themeUrls = {
+                'pure': '',
+                'default': 'vendor/bootstrap/bootstrap.min.css',
+                'flatly': 'vendor/bootswatch/flatly.min.css',
+                'cyborg': 'vendor/bootswatch/cyborg.min.css',
+                'sketchy': 'vendor/bootswatch/sketchy.min.css',
+                'morph': 'vendor/bootswatch/morph.min.css'
+            };
+            const savedTheme = localStorage.getItem('app_theme') || 'default';
+            const linkEl = document.getElementById('themeStylesheet');
+            if (savedTheme === 'pure') {
+                linkEl.removeAttribute('href');
+                document.documentElement.classList.add('pure-mode');
+            } else {
+                linkEl.href = themeUrls[savedTheme] || themeUrls['default'];
+                document.documentElement.classList.remove('pure-mode');
+            }
+
+            const savedFont = localStorage.getItem('app_font') || 'priority-regular';
+            document.documentElement.setAttribute('data-font', savedFont);
+
+            if ((localStorage.getItem('app_icon_pack') || 'bo1') === 'bo4') {
+                document.documentElement.classList.add('use-default-icons');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="vendor/chartjs/chart.umd.js"></script>
+    <script src="vendor/emailjs/email.min.js"></script>
+</head>
+<body>
+
+
+
+    <!-- [MÃ: GD-02] Thanh điều hướng trên cùng (Navbar): Chứa logo, menu chuyển giữa 3 trang và 2 nút Sao lưu / Phục hồi dữ liệu -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm" id="mainNavbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
+                <i class="bi bi-book-half me-2 default-icon"></i>
+                <img data-icon="logo.png" class="nav-logo me-2 dynamic-icon" alt="">
+                Tủ Sách Cá Nhân
+            </a>
+            <button class="navbar-toggler" type="button" id="mobileMenuBtn" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="index.html"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="books.html"><i class="bi bi-journal-bookmark me-1"></i>Kệ sách của tôi</a></li>
+                    <li class="nav-item"><a class="nav-link" href="settings.html"><i class="bi bi-gear me-1"></i>Tùy chỉnh</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <button class="btn btn-outline-light btn-sm ms-2" id="btnExportJSON"><i class="bi bi-download me-1"></i>Tải tệp sao lưu</button>
+                    <label class="btn btn-outline-light btn-sm ms-2 mb-0" for="btnImportJSON"><i class="bi bi-upload me-1"></i>Phục hồi từ tệp</label>
+                    <input type="file" id="btnImportJSON" accept=".json" style="display: none;">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <!-- [MÃ: GD-06] Chân trang (Footer bắt buộc theo đề bài) -->
+    <footer class="app-footer py-4 mt-auto border-top bg-body" id="mainFooter">
+        <div class="container text-center text-muted small">
+            <p class="mb-1 fw-bold">Tủ Sách Cá Nhân – Ứng dụng quản lý việc đọc sách mỗi ngày</p>
+            <p class="mb-0">Bài tập giữa kỳ môn Phát triển ứng dụng Web – Khoa CNTT&TT – Trường Đại học CMC</p>
+        </div>
+    </footer>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="vendor/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/gemini-service.js"></script>
+
+
+===============
+==============
+        <!-- [MÃ: GD-07] Khung biểu mẫu Thêm sách mới / Cập nhật thông tin sách (#bookForm) và nút Gộp thêm tệp sách (#btnBatchImport) -->
+        <div class="card shadow-sm border-0 rounded-4 mb-4 bg-body-tertiary" id="bookFormCard">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0" id="formHeading">
+                        <i class="bi bi-plus-circle text-primary me-2 default-icon"></i>
+                        <img data-icon="icon-add.png" class="title-icon me-2 dynamic-icon" alt="">Thêm sách mới vào tủ
+                    </h5>
+                    <div>
+                        <label class="btn btn-sm btn-outline-primary mb-0" for="btnBatchImport">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i>Thêm sách từ tệp lưu trữ (Gộp thêm)
+                        </label>
+                        <input type="file" id="btnBatchImport" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <form id="bookForm" novalidate>
+                    <!-- Ô ẩn lưu ID sách khi bấm nút Sửa -->
+                    <input type="hidden" id="bookId">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted" for="title">Tên cuốn sách <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" placeholder="Ví dụ: Hai Con Mèo Ngồi Bên Cửa Sổ">
+                            <div class="field-error text-danger small mt-1" id="errorTitle"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted" for="author">Tác giả <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="author" placeholder="Ví dụ: Nguyễn Nhật Ánh">
+                            <div class="field-error text-danger small mt-1" id="errorAuthor"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted" for="deadline">Ngày dự kiến đọc xong <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="deadline">
+                            <div class="field-error text-danger small mt-1" id="errorDeadline"></div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted" for="priority">Mức độ ưu tiên</label>
+                            <select class="form-select" id="priority">
+                                <option value="Thấp">Thấp (Đọc lúc rảnh)</option>
+                                <option value="Trung bình" selected>Trung bình</option>
+                                <option value="Cao">Cao (Cần đọc sớm)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted" for="status">Trạng thái đọc</label>
+                            <select class="form-select" id="status">
+                                <option value="Chưa đọc">Chưa đọc</option>
+                                <option value="Đang đọc">Đang đọc</option>
+                                <option value="Đã đọc">Đã đọc</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted" for="coverUrl">Đường dẫn ảnh bìa sách (để trống hoặc link lỗi sẽ tự vẽ bìa)</label>
+                            <input type="url" class="form-control" id="coverUrl" placeholder="https://...">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label small text-muted" for="description">Mô tả ngắn hoặc cảm nhận (tối thiểu 10 ký tự) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="description" placeholder="Nhập tóm tắt nội dung hoặc cảm nhận của bạn...">
+                            <div class="field-error text-danger small mt-1" id="errorDescription"></div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end gap-2">
+                            <button type="submit" class="btn btn-primary w-100" id="btnSubmitBook">
+                                <i class="bi bi-save me-1"></i>Lưu vào tủ sách
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary d-none" id="btnCancelEdit">Hủy</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+=====================
+=====================
+
+    <!-- [MÃ: GD-18] Khung hiển thị trạng thái kết nối & bắt ngoại lệ trực tiếp trên màn hình trang Tùy chỉnh -->
+    <div class="container mt-3">
+        <div id="systemStatusBox" class="status-banner status-200">
+            <div class="status-banner-left">
+                <span id="statusCodeBadge" class="status-code-pill">MÃ 200</span>
+                <div class="status-text-group">
+                    <strong id="statusTitleText">Đã đồng bộ cấu hình cá nhân</strong>
+                    <span id="statusDetailText" class="status-detail-sub">Bạn có thể đổi màu giao diện, kiểu chữ, cấu hình AI Gemini hoặc kiểm thử mã trạng thái bên dưới.</span>
+                </div>
+            </div>
+            <button type="button" class="status-close-btn" id="btnHideStatusBox" title="Thu gọn thông báo">×</button>
+        </div>
+    </div>
+
+
+==============
+==============
+                        <!-- [MÃ: GD-19] Khu vực Kiểm thử & Mô phỏng Ngoại lệ / Mã trạng thái kết nối (200, 300, 400, 404, 500) -->
+                        <h5 class="fw-bold mb-3 text-center mt-5 pt-4 border-top">
+                            <i class="bi bi-shield-check text-primary me-2"></i>Kiểm tra & Mô phỏng Thông báo Trạng thái
+                        </h5>
+                        <p class="small text-muted text-center mb-3">
+                            Bấm vào từng nút bên dưới để kiểm tra cách giao diện xử lý và hiển thị thông báo khi gặp các mã trạng thái kết nối hoặc ngoại lệ khác nhau:
+                        </p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4" id="boxTestStatusCodes">
+                            <button type="button" class="btn btn-sm btn-success" data-test-code="200">
+                                Thử Mã 200 (Thành công)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-test-code="300">
+                                Thử Mã 300 (Chuyển hướng dự phòng)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-test-code="400">
+                                Thử Mã 400 (Dữ liệu nhập lỗi)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-test-code="404">
+                                Thử Mã 404 (Không tìm thấy)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" data-test-code="500">
+                                Thử Mã 500 (Lỗi kết nối / Máy chủ)
+                            </button>
+                        </div>
+
+
+==========================
+=========================
+                   <!-- [MÃ: GD-20] Khu vực cấu hình Trợ lý AI Gemini (Nhập Key, lấy danh sách Model khả dụng, chỉnh thông số AI) -->
+                        <div id="aiSettingsSection" class="settings-panel mt-5 pt-4 border-top">
+                            <h5 class="fw-bold mb-3 text-center">
+                                <i class="bi bi-robot text-primary me-2"></i>Cài đặt Trợ lý AI (Google Gemini)
+                            </h5>
+                            <p class="small text-muted text-center mb-4">
+                                Dùng để tạo ghi chú sách tự động gửi qua thư và trò chuyện trực tiếp ở góc phải màn hình.
+                            </p>
+
+                            <form id="aiConfigForm">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold" for="gemini-api-key">Khóa kết nối Gemini API Key <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="password" class="form-control" id="gemini-api-key" placeholder="Nhập Gemini API Key (AIzaSy...)" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="btnToggleKeyVisibility" title="Hiện/Ẩn khóa">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-success fw-semibold" type="button" id="btnFetchModels">
+                                            <i class="bi bi-cloud-download me-1"></i>1. Lấy DS Mô hình
+                                        </button>
+                                    </div>
+                                    <div class="form-text small" id="modelFetchStatus">Nhập API Key rồi bấm "Lấy DS Mô hình" để tải các mô hình khả dụng.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold" for="aiModelSelect">Chọn Mô hình AI khả dụng</label>
+                                    <select class="form-select form-select-sm" id="aiModelSelect">
+                                        <option value="models/gemini-1.5-flash">Gemini 1.5 Flash (Mặc định - Nhanh & Ổn định)</option>
+                                        <option value="models/gemini-2.0-flash">Gemini 2.0 Flash</option>
+                                    </select>
+                                </div>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label small fw-bold d-flex justify-content-between" for="aiTemperature">
+                                            <span>Độ sáng tạo (Temperature):</span>
+                                            <span class="badge bg-primary" id="tempValueLabel">0.7</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="aiTemperature" min="0" max="1" step="0.1" value="0.7">
+                                        <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
+                                            <span>0.0 (Chính xác)</span>
+                                            <span>1.0 (Bay bổng)</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label small fw-bold" for="aiMaxTokens">Độ dài phản hồi tối đa (Tokens)</label>
+                                        <input type="number" class="form-control form-control-sm" id="aiMaxTokens" min="100" max="4096" step="50" value="800">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold" for="aiSystemPrompt">Chỉ dẫn vai trò cho AI (System Prompt)</label>
+                                    <textarea class="form-control form-control-sm" id="aiSystemPrompt" rows="2" placeholder="Ví dụ: Bạn là trợ lý đọc sách thân thiện, trả lời ngắn gọn bằng tiếng Việt..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100" id="btnSaveAIConfig">
+                                    <i class="bi bi-check2-circle me-1"></i>Lưu Key & Cấu hình AI
+                                </button>
+                            </form>
+                        </div>
+
+
+===============================
+===============================
+
+// [MÃ: GD-21] Tự động vẽ nút bấm mở Chat và hộp thoại Chat nổi ở góc phải dưới màn hình
+function initFloatingAIChatWidget() {
+    if (document.getElementById('aiFloatingWidget')) return;
+
+    const widgetHTML = `
+        <div id="aiFloatingWidget" class="ai-chat-widget">
+            <button type="button" id="btnToggleAIChat" class="ai-chat-fab shadow" title="Trò chuyện với Trợ lý AI">
+                <i class="bi bi-robot fs-4"></i>
+                <span class="ai-fab-label">Trợ lý AI</span>
+            </button>
+
+            <div id="aiChatPopup" class="ai-chat-popup shadow-lg d-none">
+                <div class="ai-chat-header bg-primary text-white d-flex justify-content-between align-items-center px-3 py-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-stars"></i>
+                        <strong class="small">Trợ lý Tủ Sách AI</strong>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <a href="settings.html#aiSettingsSection" class="btn btn-sm text-white p-0 px-1" title="Cấu hình AI">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                        <button type="button" id="btnCloseAIChat" class="btn btn-sm text-white p-0 px-1" title="Đóng cửa sổ">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ai-chat-quick-bar px-2 py-1 border-bottom bg-body-tertiary d-flex gap-1 flex-wrap">
+                    <button type="button" class="btn btn-outline-primary btn-xs ai-quick-prompt" data-prompt="Dựa vào tủ sách của tôi, hôm nay tôi nên ưu tiên đọc cuốn nào trước?">📖 Đề xuất sách</button>
+                    <button type="button" class="btn btn-outline-secondary btn-xs ai-quick-prompt" data-prompt="Tôi đang muốn đọc sách ban đêm cho đỡ mỏi mắt, hãy đổi giao diện phù hợp giúp tôi.">🌙 Đổi giao diện</button>
+                    <button type="button" class="btn btn-outline-success btn-xs ai-quick-prompt" data-prompt="Hãy viết một bức thư ngắn tổng kết tiến độ đọc sách hiện tại của tôi và gửi email giúp tôi.">✉️ Viết & Gửi mail</button>
+                </div>
+
+                <div id="aiChatMessages" class="ai-chat-messages p-3">
+                    <div class="ai-msg ai-msg-bot">
+                        Xin chào! Mình có thể gợi ý sách nên đọc tiếp theo, đổi giao diện web theo tâm trạng hoặc tự động soạn & gửi email báo cáo giúp bạn.
+                    </div>
+                </div>
+
+                <form id="aiChatForm" class="ai-chat-footer border-top p-2 d-flex gap-2 bg-body">
+                    <input type="text" id="aiChatInput" class="form-control form-control-sm" placeholder="Nhập câu hỏi hoặc yêu cầu..." autocomplete="off">
+                    <button type="submit" id="btnSendAIChat" class="btn btn-primary btn-sm px-3">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    `;

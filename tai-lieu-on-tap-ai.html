@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài liệu Ôn tập & Giải thích Code AI - Nguyễn Hưng</title>
+    <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f6f9; color: #212529; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; }
+        .doc-header { background: linear-gradient(135deg, #0d6efd, #0a58ca); color: #fff; padding: 2.5rem 0; margin-bottom: 2rem; }
+        .code-block { background: #1e1e1e; color: #dcdcdc; padding: 1rem; border-radius: 8px; font-family: Consolas, monospace; font-size: 0.9rem; overflow-x: auto; margin-bottom: 1rem; }
+        .line-explain { border-left: 4px solid #0d6efd; background: #e9f2ff; padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0; }
+        .badge-code { font-family: monospace; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+    <header class="doc-header shadow-sm">
+        <div class="container">
+            <h2 class="fw-bold mb-1"><i class="bi bi-cpu me-2"></i>Tài liệu Kỹ thuật & Ôn tập bảo vệ: Tích hợp AI Gemini</h2>
+            <p class="mb-0 opacity-75">Phân công phụ trách: <strong>Nguyễn Hưng</strong> | Dự án: Tủ Sách Cá Nhân (ver06 nâng cấp AI)</p>
+        </div>
+    </header>
+
+    <main class="container pb-5">
+        <!-- Phần 1: Lý thuyết cốt lõi -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h4 class="fw-bold text-primary mb-3">1. Kiến thức JavaScript cốt lõi Nguyễn Hưng cần nắm vững</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 22%;">Cú pháp / Hàm</th>
+                                <th style="width: 38%;">Bản chất lý thuyết</th>
+                                <th style="width: 40%;">Ứng dụng thực tế trong bài của Hưng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>async / await</code></td>
+                                <td>Cú pháp xử lý bất đồng bộ giúp code chạy tuần tự từ trên xuống dưới khi phải chờ mạng Internet trả dữ liệu về.</td>
+                                <td>Chờ Gemini suy nghĩ xong câu trả lời rồi mới lấy văn bản đó chuyển tiếp sang cho hàm <code>emailjs.send()</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>fetch(url, options)</code></td>
+                                <td>Hàm có sẵn của trình duyệt dùng để gửi yêu cầu HTTP (GET hoặc POST) tới máy chủ từ xa.</td>
+                                <td>Dùng <code>GET</code> để lấy danh sách mô hình AI khả dụng và dùng <code>POST</code> để gửi câu hỏi lên máy chủ Google Gemini.</td>
+                            </tr>
+                            <tr>
+                                <td><code>response.json()</code></td>
+                                <td>Chuyển đổi luồng dữ liệu thô từ máy chủ trả về thành đối tượng JavaScript (Object) để truy xuất thuộc tính.</td>
+                                <td>Đọc danh sách <code>data.models</code> hoặc lấy câu trả lời tại <code>data.candidates[0].content.parts[0].text</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>JSON.stringify(obj)</code> & <code>JSON.parse(str)</code></td>
+                                <td>Biến Object thành chuỗi văn bản (để gửi qua mạng hoặc lưu vào LocalStorage) và ngược lại.</td>
+                                <td>Lưu cấu hình AI (<code>aiConfig</code> gồm Key, Model, Temperature) vào <code>localStorage</code> và đóng gói <code>requestBody</code> gửi cho AI.</td>
+                            </tr>
+                            <tr>
+                                <td><code>try { ... } catch (err) { ... }</code></td>
+                                <td>Khối lệnh bắt ngoại lệ. Nếu lệnh trong <code>try</code> gặp lỗi (mất mạng, sai API Key), chương trình nhảy xuống <code>catch</code> chứ không bị đơ trang.</td>
+                                <td>Bắt lỗi mã 400 (sai Key), mã 500 (mất mạng) và hiển thị lên thanh trạng thái <code>hienThiThongBaoNgoaiLeHTML()</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>Array.filter()</code> & <code>Array.forEach()</code></td>
+                                <td>Duyệt qua mảng dữ liệu để lọc ra các phần tử thỏa điều kiện hoặc thực thi hành động lặp.</td>
+                                <td>Lọc ra các mô hình có hỗ trợ <code>generateContent</code> và tạo thẻ <code>&lt;option&gt;</code> đưa vào ô chọn Model.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần 2: Giải thích từng hàm -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h4 class="fw-bold text-primary mb-3">2. Giải thích chi tiết từng dòng code trong <code>assets/js/gemini-service.js</code></h4>
+
+                <h5 class="fw-bold mt-3">Hàm 1: <code>fetchAvailableModels(apiKey)</code> — Lấy danh sách mô hình từ Google</h5>
+                <div class="code-block">
+async function fetchAvailableModels(apiKey) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error?.message || 'Không thể lấy danh sách mô hình');
+    }
+    return data.models.filter(m => 
+        m.supportedGenerationMethods && 
+        m.supportedGenerationMethods.includes('generateContent')
+    );
+}</div>
+                <div class="line-explain">
+                    <ul class="mb-0">
+                        <li><strong>Dòng 1:</strong> Khai báo hàm bất đồng bộ <code>async</code> nhận đầu vào là chuỗi <code>apiKey</code> người dùng nhập.</li>
+                        <li><strong>Dòng 2:</strong> Ghép khóa API vào đường dẫn chuẩn của Google Gemini để truy vấn danh sách model.</li>
+                        <li><strong>Dòng 3-4:</strong> Gửi yêu cầu GET qua mạng và giải mã kết quả trả về sang dạng JSON.</li>
+                        <li><strong>Dòng 5-7:</strong> Kiểm tra thuộc tính <code>response.ok</code> (mã HTTP 200-299). Nếu khóa sai, ném lỗi ra ngoài để giao diện bắt được.</li>
+                        <li><strong>Dòng 8-11:</strong> Lọc danh sách mô hình, chỉ giữ lại những mô hình có phương thức <code>generateContent</code> (sinh văn bản trò chuyện).</li>
+                    </ul>
+                </div>
+
+                <h5 class="fw-bold mt-4">Hàm 2: <code>callGeminiAPI(promptText, systemInstruction)</code> — Hàm lõi gửi yêu cầu sinh văn bản</h5>
+                <div class="code-block">
+async function callGeminiAPI(promptText, systemInstruction = '') {
+    const config = getAIConfig();
+    if (!config.apiKey) throw new Error('Chưa cấu hình Gemini API Key trong trang Tùy chỉnh.');
+
+    const modelName = config.model || 'models/gemini-1.5-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${config.apiKey}`;
+
+    const requestBody = {
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {
+            temperature: parseFloat(config.temperature ?? 0.7),
+            maxOutputTokens: parseInt(config.maxTokens ?? 800, 10)
+        }
+    };
+    if (systemInstruction || config.systemPrompt) {
+        requestBody.systemInstruction = {
+            parts: [{ text: systemInstruction || config.systemPrompt }]
+        };
+    }
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || 'Lỗi gọi API Gemini');
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Không có phản hồi từ AI.';
+}</div>
+                <div class="line-explain">
+                    <ul class="mb-0">
+                        <li><strong><code>getAIConfig()</code>:</strong> Đọc cấu hình từ <code>localStorage.getItem('aiConfig')</code>.</li>
+                        <li><strong><code>generationConfig</code>:</strong> Truyền các thông số điều chỉnh AI gồm <code>temperature</code> (độ sáng tạo từ 0.0 đến 1.0) và <code>maxOutputTokens</code> (độ dài câu trả lời tối đa).</li>
+                        <li><strong><code>method: 'POST'</code>:</strong> Gửi dữ liệu dạng JSON lên máy chủ Google và trích xuất văn bản trả về ở nhánh <code>candidates[0].content.parts[0].text</code>.</li>
+                    </ul>
+                </div>
+
+                <h5 class="fw-bold mt-4">Hàm 3: Kết hợp AI + EmailJS khi bấm nút "Ghi chú AI & Gửi Mail" trên thẻ sách</h5>
+                <div class="code-block">
+async function sendBookAINoteEmail(bookId) {
+    const book = getBooks().find(b => String(b.id) === String(bookId));
+    const noteText = await generateBookNote(book);
+    emailjs.init(emailConfig.publicKey);
+    await emailjs.send(emailConfig.serviceId, emailConfig.templateId, {
+        to_email: emailConfig.targetEmail,
+        book_title: book.title,
+        ai_generated_note: noteText,
+        message: noteText,
+        time: new Date().toLocaleString('vi-VN')
+    });
+}</div>
+                <div class="line-explain">
+                    <ul class="mb-0">
+                        <li><strong>Bước 1:</strong> Tìm thông tin cuốn sách theo <code>bookId</code> từ bộ nhớ trình duyệt.</li>
+                        <li><strong>Bước 2:</strong> Chờ hàm <code>await generateBookNote(book)</code> gọi Gemini tạo bản tóm tắt và bài học rút ra.</li>
+                        <li><strong>Bước 3:</strong> Truyền kết quả văn bản vừa nhận được vào cả 2 biến <code>ai_generated_note</code> và <code>message</code> của <code>emailjs.send()</code> để tương thích với mọi mẫu Email Template trên Dashboard EmailJS.</li>
+                    </ul>
+                </div>
+
+                <h5 class="fw-bold mt-4">Hàm 4: Xử lý lệnh thông minh trong khung Chat góc màn hình (Đổi giao diện, gợi ý sách, gửi mail)</h5>
+                <div class="line-explain">
+                    Khi người dùng chat ở khung góc phải, hàm <code>handleChatCommand(userText)</code> sẽ đính kèm toàn bộ danh sách sách hiện có trong <code>getBooks()</code> vào lời nhắc cho AI, đồng thời yêu cầu AI trả về kèm mã lệnh điều khiển nếu người dùng muốn thực hiện thao tác:
+                    <ul class="mb-0 mt-2">
+                        <li>Nếu người dùng nói <em>"Mình đang buồn/mỏi mắt, đổi giao diện tối giúp mình"</em> $\rightarrow$ AI trả về thẻ lệnh <code>[THEME:cyborg]</code> $\rightarrow$ Code JS tự động gọi <code>applyTheme('cyborg')</code> đổi màu trang web ngay lập tức.</li>
+                        <li>Nếu người dùng nói <em>"Viết email tổng hợp sách đang đọc và gửi đi giúp mình"</em> $\rightarrow$ AI soạn nội dung trong thẻ <code>[SEND_EMAIL:nội dung...]</code> $\rightarrow$ Code JS tự động kích hoạt <code>emailjs.send()</code> gửi thư ngầm và báo thành công ngay trong khung chat.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

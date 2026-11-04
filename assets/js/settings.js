@@ -1,4 +1,8 @@
-/* [MÃ: CD-01] Quản lý toàn bộ các hộp chọn và nút bấm trong trang Tùy chỉnh (settings.html) */
+// =========================================================================
+// TỆP: assets/js/settings.js
+// Mục đích: Xử lý trang Tùy chỉnh (Giao diện, Hình nền, EmailJS, Cấu hình AI)
+// =========================================================================
+
 document.addEventListener('DOMContentLoaded', () => {
     const themeSelector = document.getElementById('themeSelector');
     const fontSelector = document.getElementById('fontSelector');
@@ -9,147 +13,314 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnClearData = document.getElementById('btnClearData');
     const btnRestoreSample = document.getElementById('btnRestoreSample');
 
-    /* [MÃ: CD-02] Hộp chọn Màu sắc & Bố cục Giao diện (#themeSelector) */
-    if (themeSelector) {
-        themeSelector.value = localStorage.getItem('app_theme') || 'default';
-        themeSelector.addEventListener('change', (e) => {
-            const giaTriMoi = e.target.value;
-            localStorage.setItem('app_theme', giaTriMoi);
-            applySavedTheme();
-            hienThiThongBaoNgoaiLeHTML(200, 'Đổi giao diện thành công (Mã 200)', `Đã chuyển sang phong cách giao diện: ${giaTriMoi}.`);
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã đổi phong cách giao diện', showConfirmButton: false, timer: 1400 });
-        });
-    }
+    // Các phần tử thuộc khu vực cấu hình AI
+    const aiConfigForm = document.getElementById('aiConfigForm');
+    const apiKeyInput = document.getElementById('gemini-api-key');
+    const btnToggleKey = document.getElementById('btnToggleKeyVisibility');
+    const btnFetchModels = document.getElementById('btnFetchModels');
+    const modelSelect = document.getElementById('aiModelSelect');
+    const modelFetchStatus = document.getElementById('modelFetchStatus');
+    const tempInput = document.getElementById('aiTemperature');
+    const tempLabel = document.getElementById('tempValueLabel');
+    const maxTokensInput = document.getElementById('aiMaxTokens');
+    const systemPromptInput = document.getElementById('aiSystemPrompt');
 
-    /* [MÃ: CD-03] Hộp chọn Kiểu chữ hiển thị (#fontSelector) */
-    if (fontSelector) {
-        fontSelector.value = localStorage.getItem('app_font') || 'priority-regular';
-        fontSelector.addEventListener('change', (e) => {
-            const fontMoi = e.target.value;
-            localStorage.setItem('app_font', fontMoi);
-            applySavedFont();
-            hienThiThongBaoNgoaiLeHTML(200, 'Đổi kiểu chữ hiển thị thành công (Mã 200)', `Đã nạp font chữ cục bộ: ${fontMoi} (Chạy 100% Offline).`);
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã áp dụng kiểu chữ mới', showConfirmButton: false, timer: 1400 });
-        });
-    }
-
-    /* [MÃ: CD-04] Hộp chọn Bộ biểu tượng trang trí (#iconPackSelector) */
+    // 1. Đồng bộ giá trị đang lưu lên các hộp chọn phong cách
+    if (themeSelector) themeSelector.value = localStorage.getItem('app_theme') || 'default';
+    if (fontSelector) fontSelector.value = localStorage.getItem('app_font') || 'priority-regular';
+    const currentIconPack = localStorage.getItem('app_icon_pack') || 'bo1';
     if (iconPackSelector) {
-        let savedPack = localStorage.getItem('app_icon_pack') || 'bo1';
-        if (savedPack !== 'bo1' && savedPack !== 'bo2' && savedPack !== 'bo4') savedPack = 'bo1';
-        iconPackSelector.value = savedPack;
+        iconPackSelector.value = (currentIconPack === 'bo3') ? 'bo1' : currentIconPack;
+    }
 
-        iconPackSelector.addEventListener('change', (e) => {
-            const boIconMoi = e.target.value;
-            localStorage.setItem('app_icon_pack', boIconMoi);
-            applyIconPack();
-            hienThiThongBaoNgoaiLeHTML(200, 'Đổi bộ biểu tượng thành công (Mã 200)', `Đã đồng bộ gói biểu tượng: ${boIconMoi}.`);
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã đổi bộ biểu tượng', showConfirmButton: false, timer: 1400 });
+    // 2. Nạp cấu hình EmailJS đã lưu (hoặc điền sẵn thông số mặc định để tiện test)
+    const emailConfig = typeof getEffectiveEmailConfig === 'function'
+        ? getEffectiveEmailConfig()
+        : JSON.parse(localStorage.getItem('emailConfig') || '{}');
+
+    if (document.getElementById('targetEmail')) {
+        document.getElementById('targetEmail').value = emailConfig.targetEmail || '';
+        document.getElementById('emailPublicKey').value = emailConfig.publicKey || '';
+        document.getElementById('emailServiceId').value = emailConfig.serviceId || '';
+        document.getElementById('emailTemplateId').value = emailConfig.templateId || '';
+    }
+
+    // 3. [MÃ: GD-20] Nạp cấu hình AI Gemini từ localStorage khi mở trang
+    const populateSavedModels = (selectedModel) => {
+        try {
+            const cachedModels = JSON.parse(localStorage.getItem('aiAvailableModels') || '[]');
+            if (cachedModels.length > 0 && modelSelect) {
+                modelSelect.innerHTML = '';
+                cachedModels.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.name;
+                    opt.textContent = m.displayName || m.name;
+                    modelSelect.appendChild(opt);
+                });
+            }
+            if (selectedModel && modelSelect) {
+                const exists = Array.from(modelSelect.options).some(o => o.value === selectedModel);
+                if (!exists) {
+                    const customOpt = document.createElement('option');
+                    customOpt.value = selectedModel;
+                    customOpt.textContent = selectedModel;
+                    modelSelect.appendChild(customOpt);
+                }
+                modelSelect.value = selectedModel;
+            }
+        } catch (e) {
+            console.warn('Không thể đọc danh sách model đã lưu:', e);
+        }
+    };
+
+    if (typeof getAIConfig === 'function' && aiConfigForm) {
+        const aiCfg = getAIConfig();
+        apiKeyInput.value = aiCfg.apiKey || '';
+        tempInput.value = aiCfg.temperature ?? 0.7;
+        tempLabel.innerText = aiCfg.temperature ?? 0.7;
+        maxTokensInput.value = aiCfg.maxTokens ?? 800;
+        systemPromptInput.value = aiCfg.systemPrompt || '';
+        populateSavedModels(aiCfg.model);
+    }
+
+    // Hiện / ẩn mật khẩu API Key
+    if (btnToggleKey && apiKeyInput) {
+        btnToggleKey.addEventListener('click', () => {
+            const isPass = apiKeyInput.type === 'password';
+            apiKeyInput.type = isPass ? 'text' : 'password';
+            btnToggleKey.innerHTML = isPass ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
         });
     }
 
-    /* [MÃ: CD-05] Tải ảnh nền cá nhân (#bgUpload) và nút Khôi phục nền mặc định (#btnResetVisuals) */
+    // Cập nhật nhãn hiển thị khi kéo thanh trượt Temperature
+    if (tempInput && tempLabel) {
+        tempInput.addEventListener('input', (e) => {
+            tempLabel.innerText = e.target.value;
+        });
+    }
+
+    // [MÃ: NV-02] Sự kiện bấm nút "1. Lấy DS Mô hình" từ Google Gemini API
+    if (btnFetchModels) {
+        btnFetchModels.addEventListener('click', async () => {
+            const key = apiKeyInput.value.trim();
+            if (!key) {
+                hienThiThongBaoNgoaiLeHTML(400, 'Thiếu Gemini API Key (Mã 400)', 'Vui lòng dán API Key vào ô trước khi lấy danh sách mô hình.');
+                Swal.fire('Thiếu khóa API (Mã 400)', 'Vui lòng nhập Gemini API Key trước.', 'warning');
+                return;
+            }
+
+            const originalBtnHTML = btnFetchModels.innerHTML;
+            btnFetchModels.disabled = true;
+            btnFetchModels.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang tải...';
+            modelFetchStatus.innerText = 'Đang kết nối tới Google Gemini để lấy danh sách mô hình...';
+            modelFetchStatus.className = 'form-text small text-primary';
+
+            try {
+                const models = await fetchAvailableGeminiModels(key);
+                modelSelect.innerHTML = '';
+                models.forEach(m => {
+                    const option = document.createElement('option');
+                    option.value = m.name;
+                    option.textContent = m.displayName ? `${m.displayName} (${m.name})` : m.name;
+                    modelSelect.appendChild(option);
+                });
+
+                // Lưu luôn API Key và model đầu tiên sau khi lấy thành công
+                if (models.length > 0) {
+                    saveAIConfig({ apiKey: key, model: models[0].name });
+                }
+
+                modelFetchStatus.innerText = `Đã nạp thành công ${models.length} mô hình khả dụng. Hãy chọn mô hình và bấm Lưu.`;
+                modelFetchStatus.className = 'form-text small text-success fw-semibold';
+                hienThiThongBaoNgoaiLeHTML(200, `Tải thành công ${models.length} mô hình AI (Mã 200)`, 'Danh sách mô hình Gemini khả dụng đã được cập nhật vào hộp chọn.');
+            } catch (err) {
+                modelFetchStatus.innerText = `Lỗi: ${err.message}`;
+                modelFetchStatus.className = 'form-text small text-danger';
+                hienThiThongBaoNgoaiLeHTML(400, 'Không thể lấy danh sách mô hình (Mã 400)', err.message);
+                Swal.fire('Lỗi xác thực API Key', err.message, 'error');
+            } finally {
+                btnFetchModels.disabled = false;
+                btnFetchModels.innerHTML = originalBtnHTML;
+            }
+        });
+    }
+
+    // Sự kiện Lưu cấu hình AI vào localStorage
+    if (aiConfigForm) {
+        aiConfigForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newCfg = {
+                apiKey: apiKeyInput.value.trim(),
+                model: modelSelect.value || 'models/gemini-1.5-flash',
+                temperature: parseFloat(tempInput.value || 0.7),
+                maxTokens: parseInt(maxTokensInput.value || 800, 10),
+                systemPrompt: systemPromptInput.value.trim()
+            };
+            saveAIConfig(newCfg);
+            ghiLogF12('CẤU HÌNH AI', `Đã lưu Model: ${newCfg.model}, Temp: ${newCfg.temperature}`);
+            hienThiThongBaoNgoaiLeHTML(200, 'Lưu cấu hình Gemini AI thành công (Mã 200)', `Đang sử dụng mô hình ${newCfg.model} với Temperature ${newCfg.temperature}.`);
+            Swal.fire({
+                title: 'Đã lưu cấu hình AI (Mã 200)',
+                text: 'Bạn có thể tạo ghi chú sách hoặc bấm vào nút Trợ lý AI ở góc phải màn hình để trò chuyện ngay.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        });
+    }
+
+    // 4. Sự kiện đổi màu giao diện, kiểu chữ, bộ biểu tượng
+    if (themeSelector) {
+        themeSelector.addEventListener('change', (e) => {
+            const val = e.target.value;
+            applyTheme(val);
+            hienThiThongBaoNgoaiLeHTML(200, 'Đổi giao diện thành công (Mã 200)', `Đã áp dụng phong cách giao diện: ${val}.`);
+        });
+    }
+
+    if (fontSelector) {
+        fontSelector.addEventListener('change', (e) => {
+            const val = e.target.value;
+            applyFont(val);
+            hienThiThongBaoNgoaiLeHTML(200, 'Đổi kiểu chữ thành công (Mã 200)', `Đã chuyển sang kiểu chữ: ${val}.`);
+        });
+    }
+
+    if (iconPackSelector) {
+        iconPackSelector.addEventListener('change', (e) => {
+            const val = e.target.value;
+            applyIconPack(val);
+            hienThiThongBaoNgoaiLeHTML(200, 'Đổi bộ biểu tượng thành công (Mã 200)', `Đã đồng bộ bộ biểu tượng trang trí: ${val}.`);
+        });
+    }
+
+    // 5. Xử lý nén ảnh nền tải lên qua thẻ Canvas để không tràn bộ nhớ 5MB của LocalStorage
     if (bgUpload) {
         bgUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            compressImage(file, 1920, 1080, 0.65, (base64) => {
-                try {
-                    localStorage.setItem('app_bg', base64);
-                    applyCustomVisuals();
-                    hienThiThongBaoNgoaiLeHTML(200, 'Cập nhật hình nền thành công (Mã 200)', `Đã nén và lưu ảnh ${file.name} vào bộ nhớ trình duyệt.`);
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã cập nhật hình nền mới', showConfirmButton: false, timer: 1400 });
-                } catch (err) {
-                    hienThiThongBaoNgoaiLeHTML(500, 'Tràn bộ nhớ khi lưu ảnh nền (Mã 500)', 'Ảnh quá nặng so với bộ nhớ trình duyệt, vui lòng chọn ảnh khác nhẹ hơn.');
-                }
-            });
+
+            if (!file.type.startsWith('image/')) {
+                hienThiThongBaoNgoaiLeHTML(400, 'Tệp hình nền không hợp lệ (Mã 400)', 'Vui lòng chọn tệp định dạng hình ảnh (.jpg, .png, .webp).');
+                Swal.fire('Sai định dạng (Mã 400)', 'Vui lòng chọn tệp hình ảnh.', 'warning');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1280;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
+                    try {
+                        localStorage.setItem('app_bg', compressedDataUrl);
+                        applySavedBackground();
+                        hienThiThongBaoNgoaiLeHTML(200, 'Cập nhật hình nền thành công (Mã 200)', 'Ảnh đã được tự động thu gọn dung lượng và lưu vào trình duyệt.');
+                        Swal.fire({ title: 'Đã đổi hình nền (Mã 200)', icon: 'success', timer: 1200, showConfirmButton: false });
+                    } catch (err) {
+                        hienThiThongBaoNgoaiLeHTML(500, 'Bộ nhớ trình duyệt quá tải (Mã 500)', 'Ảnh vẫn quá lớn so với giới hạn LocalStorage.');
+                        Swal.fire('Lỗi bộ nhớ (Mã 500)', 'Không thể lưu ảnh này, vui lòng chọn ảnh nhẹ hơn.', 'error');
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
         });
     }
 
     if (btnResetVisuals) {
         btnResetVisuals.addEventListener('click', () => {
             localStorage.removeItem('app_bg');
-            applyCustomVisuals();
-            hienThiThongBaoNgoaiLeHTML(300, 'Đã quay về hình nền mặc định (Mã 300)', 'Đã xóa ảnh nền cá nhân để giải phóng bộ nhớ LocalStorage.');
-            Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Đã khôi phục hình nền gốc', showConfirmButton: false, timer: 1400 });
+            applySavedBackground();
+            if (bgUpload) bgUpload.value = '';
+            hienThiThongBaoNgoaiLeHTML(200, 'Đã khôi phục nền mặc định (Mã 200)', 'Đã gỡ hình nền cá nhân khỏi bộ nhớ trình duyệt.');
         });
     }
 
-    /* [MÃ: CD-06] Lưu cài đặt nhận báo cáo qua thư (#emailConfigForm), Khôi phục sách mẫu & Làm trống tủ sách */
-    const emailConfig = JSON.parse(localStorage.getItem('emailConfig') || '{}');
-    document.getElementById('targetEmail').value = emailConfig.targetEmail || '';
-    document.getElementById('emailPublicKey').value = emailConfig.publicKey || '';
-    document.getElementById('emailServiceId').value = emailConfig.serviceId || '';
-    document.getElementById('emailTemplateId').value = emailConfig.templateId || '';
-
+    // 6. Lưu cài đặt hộp thư EmailJS
     if (emailConfigForm) {
         emailConfigForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const config = {
+            const cfg = {
                 targetEmail: document.getElementById('targetEmail').value.trim(),
                 publicKey: document.getElementById('emailPublicKey').value.trim(),
                 serviceId: document.getElementById('emailServiceId').value.trim(),
                 templateId: document.getElementById('emailTemplateId').value.trim()
             };
-            if (!config.targetEmail.includes('@')) {
-                hienThiThongBaoNgoaiLeHTML(400, 'Địa chỉ thư điện tử không hợp lệ (Mã 400)', 'Vui lòng nhập đúng định dạng email có chứa ký tự @.');
-                return;
-            }
-            localStorage.setItem('emailConfig', JSON.stringify(config));
-            hienThiThongBaoNgoaiLeHTML(200, 'Lưu cấu hình hộp thư thành công (Mã 200)', `Sẵn sàng gửi báo cáo tới: ${config.targetEmail}.`);
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã lưu cài đặt hộp thư', showConfirmButton: false, timer: 1500 });
+            localStorage.setItem('emailConfig', JSON.stringify(cfg));
+            hienThiThongBaoNgoaiLeHTML(200, 'Lưu cấu hình EmailJS thành công (Mã 200)', `Sẵn sàng gửi ghi chú AI tới hộp thư ${cfg.targetEmail}.`);
+            Swal.fire({ title: 'Đã lưu hộp thư (Mã 200)', icon: 'success', timer: 1500, showConfirmButton: false });
         });
     }
 
-    // Nút nạp lại 12 cuốn sách mẫu ban đầu
+    // 7. Các nút mô phỏng mã trạng thái kết nối (200, 300, 400, 404, 500)
+    document.querySelectorAll('[data-test-code]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const code = parseInt(btn.getAttribute('data-test-code'), 10);
+            const samples = {
+                200: ['Mô phỏng Mã 200: Kết nối thành công', 'Máy chủ Gemini AI và bộ nhớ trình duyệt phản hồi bình thường.'],
+                300: ['Mô phỏng Mã 300: Chuyển hướng nguồn dữ liệu', 'Tệp cấu hình chính vắng mặt, hệ thống tự động dùng cấu hình dự phòng.'],
+                400: ['Mô phỏng Mã 400: Dữ liệu đầu vào chưa hợp lệ', 'Người dùng bỏ trống trường bắt buộc hoặc nhập sai định dạng API Key.'],
+                404: ['Mô phỏng Mã 404: Không tìm thấy tài nguyên', 'Không tìm thấy cuốn sách hoặc đường dẫn ảnh bìa không tồn tại.'],
+                500: ['Mô phỏng Mã 500: Sự cố máy chủ hoặc mất mạng', 'Không thể kết nối tới máy chủ EmailJS / Google Gemini lúc này.']
+            };
+            const [title, detail] = samples[code] || samples[200];
+            hienThiThongBaoNgoaiLeHTML(code, title, detail);
+        });
+    });
+
+    // 8. Nạp lại 12 sách mẫu hoặc Xóa trắng tủ sách
     if (btnRestoreSample) {
         btnRestoreSample.addEventListener('click', () => {
-            saveBooks(DEFAULT_BOOKS);
-            hienThiThongBaoNgoaiLeHTML(200, 'Đã nạp lại 12 cuốn sách mẫu (Mã 200)', 'Tủ sách đã được khôi phục bộ dữ liệu mẫu đa dạng ban đầu.');
-            Swal.fire('Đã khôi phục (Mã 200)', 'Đã nạp lại 12 cuốn sách mẫu vào tủ sách!', 'success');
-        });
-    }
-
-    if (btnClearData) {
-        btnClearData.addEventListener('click', () => {
-            ghiLogF12('XÓA TOÀN BỘ', 'Người dùng bấm nút Làm trống toàn bộ tủ sách');
             Swal.fire({
-                title: 'Làm trống toàn bộ tủ sách?',
-                text: 'Tất cả sách hiện có sẽ bị xóa. Hãy tải tệp sao lưu trước nếu cần giữ lại!',
-                icon: 'warning',
+                title: 'Nạp lại sách mẫu ban đầu?',
+                text: 'Danh sách hiện tại sẽ được thay bằng bộ sách mẫu gốc của ứng dụng.',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Chắc chắn xóa',
+                confirmButtonText: 'Đồng ý nạp lại',
                 cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    saveBooks([]);
-                    hienThiThongBaoNgoaiLeHTML(200, 'Đã làm trống toàn bộ tủ sách (Mã 200)', 'Dữ liệu kệ sách hiện tại đã được đưa về 0 cuốn.');
-                    Swal.fire('Đã làm trống (Mã 200)', 'Tủ sách của bạn đã được dọn sạch.', 'success');
-                } else {
-                    hienThiThongBaoNgoaiLeHTML(300, 'Đã hủy thao tác làm trống tủ sách (Mã 300)', 'Toàn bộ sách của bạn vẫn được giữ nguyên.');
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    localStorage.removeItem('books');
+                    await initSampleData();
+                    hienThiThongBaoNgoaiLeHTML(200, 'Đã khôi phục sách mẫu (Mã 200)', 'Dữ liệu mẫu ban đầu đã được nạp lại vào tủ sách.');
+                    Swal.fire('Hoàn tất (Mã 200)', 'Đã khôi phục danh sách sách mẫu.', 'success');
                 }
             });
         });
     }
 
-    /* [MÃ: CD-07] Xử lý 5 nút bấm Kiểm thử & Mô phỏng Mã trạng thái (200, 300, 400, 404, 500) ngay trên giao diện */
-    document.querySelectorAll('[data-test-code]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const code = parseInt(btn.getAttribute('data-test-code'), 10);
-            if (code === 200) {
-                hienThiThongBaoNgoaiLeHTML(200, 'Kiểm thử Mã 200 OK – Thành công', 'Kết nối dữ liệu hoàn hảo, thao tác đọc/ghi LocalStorage hoạt động trơn tru.');
-            } else if (code === 300) {
-                hienThiThongBaoNgoaiLeHTML(300, 'Kiểm thử Mã 300 – Chuyển hướng tài nguyên dự phòng', 'Khi ảnh bìa trực tuyến bị lỗi hoặc mất mạng, hệ thống tự động chuyển sang bộ vẽ ảnh bìa SVG nội bộ.');
-            } else if (code === 400) {
-                hienThiThongBaoNgoaiLeHTML(400, 'Kiểm thử Mã 400 – Dữ liệu đầu vào không hợp lệ', 'Bắt lỗi khi người dùng bỏ trống tên sách, nhập hạn đọc trong quá khứ hoặc mô tả ngắn hơn 10 ký tự.');
-            } else if (code === 404) {
-                hienThiThongBaoNgoaiLeHTML(404, 'Kiểm thử Mã 404 – Không tìm thấy tài nguyên hoặc sách', 'Báo hiệu khi từ khóa lọc không khớp cuốn sách nào hoặc đường dẫn tệp không tồn tại.');
-            } else if (code === 500) {
-                hienThiThongBaoNgoaiLeHTML(500, 'Kiểm thử Mã 500 – Ngoại lệ hệ thống / Mất kết nối máy chủ', 'Bắt ngoại lệ khi mất mạng lúc gửi EmailJS hoặc khi dung lượng LocalStorage bị đầy.');
-            }
-            document.getElementById('systemStatusBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (btnClearData) {
+        btnClearData.addEventListener('click', () => {
+            Swal.fire({
+                title: 'Làm trống toàn bộ tủ sách?',
+                text: 'Toàn bộ sách hiện có sẽ bị xóa khỏi trình duyệt.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Xóa toàn bộ',
+                cancelButtonText: 'Hủy'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveBooks([]);
+                    hienThiThongBaoNgoaiLeHTML(200, 'Đã làm trống tủ sách (Mã 200)', 'Hiện có 0 cuốn sách trong bộ nhớ trình duyệt.');
+                    Swal.fire('Đã xóa sạch (Mã 200)', 'Tủ sách của bạn hiện đang trống.', 'success');
+                }
+            });
         });
-    });
+    }
 });

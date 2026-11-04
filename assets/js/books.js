@@ -1,129 +1,190 @@
-/* [MÃ: NV-02] Lấy các ô nhập liệu và hộp lọc trên trang Kệ sách để xử lý sự kiện */
+// =========================================================================
+// TỆP: assets/js/books.js
+// Mục đích: Quản lý Thêm, Sửa, Xóa, Tìm kiếm, Lọc sách và Tạo Ghi chú AI gửi Mail
+// =========================================================================
+
+// Tự động vẽ ảnh bìa SVG nếu người dùng để trống link ảnh hoặc link ảnh bị lỗi (404)
+function createFallbackCover(title, author) {
+    const safeTitle = (title || 'Sách hay').substring(0, 26);
+    const safeAuthor = (author || 'Tác giả').substring(0, 22);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260">
+        <defs>
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2b5876"/>
+                <stop offset="100%" stop-color="#4e4376"/>
+            </linearGradient>
+        </defs>
+        <rect width="400" height="260" fill="url(#bg)"/>
+        <rect x="20" y="20" width="360" height="220" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" rx="8"/>
+        <text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="bold">${safeTitle}</text>
+        <text x="50%" y="64%" dominant-baseline="middle" text-anchor="middle" fill="#e0e0e0" font-family="sans-serif" font-size="14">${safeAuthor}</text>
+    </svg>`;
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+// [MÃ: NV-03] Kết hợp 2 quy trình bất đồng bộ: Gọi Gemini tạo ghi chú -> Gửi tự động qua EmailJS
+window.handleSendAINote = async function(bookId, btnElement) {
+    const books = getBooks();
+    const book = books.find(b => String(b.id) === String(bookId));
+    if (!book) {
+        hienThiThongBaoNgoaiLeHTML(404, 'Không tìm thấy sách (Mã 404)', 'Cuốn sách này không còn tồn tại trong bộ nhớ.');
+        return;
+    }
+
+    const aiConfig = typeof getAIConfig === 'function' ? getAIConfig() : {};
+    if (!aiConfig.apiKey) {
+        hienThiThongBaoNgoaiLeHTML(300, 'Cần nhập Gemini API Key trước (Mã 300)', 'Hệ thống gợi ý bạn chuyển sang trang Tùy chỉnh để lưu khóa API.');
+        Swal.fire({
+            title: 'Chưa có Gemini API Key',
+            text: 'Vui lòng vào trang Tùy chỉnh để nhập Gemini API Key trước khi tạo ghi chú AI.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Đến trang Tùy chỉnh',
+            cancelButtonText: 'Đóng'
+        }).then(res => {
+            if (res.isConfirmed) window.location.href = 'settings.html#aiSettingsSection';
+        });
+        return;
+    }
+
+    // Khóa nút bấm và hiện Loading Spinner để tránh người dùng bấm nhiều lần
+    const originalHTML = btnElement ? btnElement.innerHTML : '';
+    if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.classList.add('btn-loading-locked');
+        btnElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang tạo & gửi...';
+    }
+
+    try {
+        hienThiThongBaoNgoaiLeHTML(200, `AI đang phân tích sách "${book.title}"...`, 'Vui lòng chờ vài giây để Gemini tóm tắt nội dung và gửi thư.');
+
+        // Bước 1: Gọi Gemini API sinh nội dung ghi chú cho cuốn sách
+        const aiNoteText = await generateBookNote(book);
+
+        // Lưu bản ghi chú AI vừa tạo vào thuộc tính aiNote của sách để xem lại khi cần
+        book.aiNote = aiNoteText;
+        saveBooks(books);
+
+        // Bước 2: Gửi nội dung qua EmailJS nếu đã có cấu hình hợp lệ
+        const emailCfg = typeof getEffectiveEmailConfig === 'function'
+            ? getEffectiveEmailConfig()
+            : JSON.parse(localStorage.getItem('emailConfig') || '{}');
+
+        const hasValidEmailJS = typeof emailjs !== 'undefined' &&
+            emailCfg.publicKey &&
+            !emailCfg.publicKey.includes('YOUR_DEFAULT') &&
+            emailCfg.serviceId &&
+            emailCfg.templateId;
+
+        if (hasValidEmailJS) {
+            emailjs.init(emailCfg.publicKey);
+            await emailjs.send(emailCfg.serviceId, emailCfg.templateId, {
+                to_email: emailCfg.targetEmail,
+                book_title: book.title,
+                book_author: book.author,
+                book_status: book.status,
+                message: aiNoteText,
+                ai_generated_note: aiNoteText,
+                time: new Date().toLocaleString('vi-VN')
+            });
+
+            hienThiThongBaoNgoaiLeHTML(200, 'Đã tạo ghi chú AI & gửi thư thành công (Mã 200)', `Đã gửi ghi chú cuốn "${book.title}" tới ${emailCfg.targetEmail}.`);
+            Swal.fire({
+                title: 'Đã gửi thành công!',
+                html: `<div class="text-start small">
+                    <p class="mb-2 text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Đã gửi ngầm tới hộp thư: ${emailCfg.targetEmail}</p>
+                    <div class="p-3 bg-body-tertiary rounded border" style="white-space: pre-wrap; max-height: 260px; overflow-y: auto;">${aiNoteText}</div>
+                </div>`,
+                icon: 'success',
+                confirmButtonText: 'Đóng'
+            });
+        } else {
+            // Trường hợp người dùng chưa điền mã EmailJS thật, vẫn hiển thị trọn vẹn ghi chú AI và hướng dẫn cấu hình
+            hienThiThongBaoNgoaiLeHTML(200, 'AI đã tạo ghi chú thành công (Mã 200)', 'Đã sinh xong nội dung ghi chú. Hãy điền mã EmailJS ở mục Tùy chỉnh nếu muốn gửi mail thật.');
+            Swal.fire({
+                title: `Ghi chú AI: ${book.title}`,
+                html: `<div class="text-start small">
+                    <p class="mb-2 text-muted">Nội dung do Gemini tạo (Điền thêm mã EmailJS trong trang Tùy chỉnh để tự động gửi về hộp thư):</p>
+                    <div class="p-3 bg-body-tertiary rounded border" style="white-space: pre-wrap; max-height: 280px; overflow-y: auto;">${aiNoteText}</div>
+                </div>`,
+                icon: 'info',
+                confirmButtonText: 'Đã xem'
+            });
+        }
+    } catch (err) {
+        hienThiThongBaoNgoaiLeHTML(500, 'Lỗi khi tạo ghi chú AI hoặc gửi mail (Mã 500)', err.message || JSON.stringify(err));
+        Swal.fire('Không thể hoàn tất', err.message || 'Lỗi kết nối máy chủ AI hoặc EmailJS.', 'error');
+    } finally {
+        if (btnElement) {
+            btnElement.disabled = false;
+            btnElement.classList.remove('btn-loading-locked');
+            btnElement.innerHTML = originalHTML;
+        }
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const bookForm = document.getElementById('bookForm');
-    const bookIdInput = document.getElementById('bookId');
-    const titleInput = document.getElementById('title');
-    const authorInput = document.getElementById('author');
-    const deadlineInput = document.getElementById('deadline');
-    const priorityInput = document.getElementById('priority');
-    const statusInput = document.getElementById('status');
-    const coverUrlInput = document.getElementById('coverUrl');
-    const descriptionInput = document.getElementById('description');
-
-    const btnSubmitBook = document.getElementById('btnSubmitBook');
-    const btnCancelEdit = document.getElementById('btnCancelEdit');
-    const formHeading = document.getElementById('formHeading');
-
+    const bookGrid = document.getElementById('bookGrid');
     const searchInput = document.getElementById('searchInput');
     const filterStatus = document.getElementById('filterStatus');
     const filterPriority = document.getElementById('filterPriority');
     const sortDeadline = document.getElementById('sortDeadline');
-    const bookGrid = document.getElementById('bookGrid');
+    const btnCancelEdit = document.getElementById('btnCancelEdit');
+    const btnBatchImport = document.getElementById('btnBatchImport');
     const bookCountBadge = document.getElementById('bookCountBadge');
 
-    const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() + 7);
-    deadlineInput.value = defaultDate.toISOString().split('T')[0];
+    // Hàm kiểm tra lỗi nhập liệu trên biểu mẫu thêm/sửa sách
+    function validateBookForm() {
+        let isValid = true;
+        const title = document.getElementById('title').value.trim();
+        const author = document.getElementById('author').value.trim();
+        const deadline = document.getElementById('deadline').value;
+        const desc = document.getElementById('description').value.trim();
 
-    /* [MÃ: NV-03] Hàm createOfflineCoverSVG & xuLyLoiAnhBia:
-       Khi link ảnh bìa người dùng dán vào bị lỗi 404 hoặc mất mạng, hàm này tự chuyển sang bìa SVG nội bộ (Mã 300) và báo ngay trên khung màn hình */
-    function createOfflineCoverSVG(title, author) {
-        const safeTitle = (title || 'Sách hay').slice(0, 24).replace(/[<>&"']/g, '');
-        const safeAuthor = (author || '').slice(0, 22).replace(/[<>&"']/g, '');
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260">
-            <defs>
-                <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#1e3a5f"/>
-                    <stop offset="100%" stop-color="#2b6cb0"/>
-                </linearGradient>
-            </defs>
-            <rect width="400" height="260" fill="url(#g)"/>
-            <rect x="20" y="20" width="360" height="220" rx="10" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
-            <text x="200" y="120" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle">${safeTitle}</text>
-            <text x="200" y="155" fill="#cbd5e1" font-family="sans-serif" font-size="14" text-anchor="middle">${safeAuthor}</text>
-        </svg>`;
-        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-    }
-
-    // Hàm toàn cục được gọi khi thẻ <img> của bìa sách bị lỗi không tải được URL
-    window.xuLyLoiAnhBia = function(imgElement, tenSach, tacGia) {
-        imgElement.onerror = null;
-        imgElement.src = createOfflineCoverSVG(tenSach, tacGia);
-        hienThiThongBaoNgoaiLeHTML(
-            300,
-            `Đã chuyển sang ảnh bìa tự vẽ dự phòng (Mã 300)`,
-            `Đường dẫn ảnh của cuốn "${tenSach}" không phản hồi (Lỗi 404/Offline), hệ thống đã tự tạo bìa SVG thay thế.`
-        );
-    };
-
-    /* [MÃ: NV-04] Hàm validateBookForm: Kiểm tra dữ liệu đầu vào, nếu sai báo Mã 400 lên cả khung HTML lẫn dưới ô nhập */
-    function clearErrors() {
         document.getElementById('errorTitle').innerText = '';
         document.getElementById('errorAuthor').innerText = '';
         document.getElementById('errorDeadline').innerText = '';
         document.getElementById('errorDescription').innerText = '';
-    }
 
-    function validateBookForm(isEditing) {
-        clearErrors();
-        let isValid = true;
-        const danhSachLoi = [];
-
-        if (!titleInput.value.trim()) {
+        if (!title) {
             document.getElementById('errorTitle').innerText = 'Vui lòng nhập tên cuốn sách.';
-            danhSachLoi.push('Thiếu tên sách');
             isValid = false;
         }
-        if (!authorInput.value.trim()) {
+        if (!author) {
             document.getElementById('errorAuthor').innerText = 'Vui lòng nhập tên tác giả.';
-            danhSachLoi.push('Thiếu tác giả');
             isValid = false;
         }
-        if (!deadlineInput.value) {
+        if (!deadline) {
             document.getElementById('errorDeadline').innerText = 'Vui lòng chọn ngày dự kiến đọc xong.';
-            danhSachLoi.push('Thiếu hạn đọc');
             isValid = false;
-        } else {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const selectedDate = new Date(deadlineInput.value + 'T00:00:00');
-            if (!isEditing && selectedDate < today) {
-                document.getElementById('errorDeadline').innerText = 'Ngày dự kiến đọc xong không được nhỏ hơn hôm nay.';
-                danhSachLoi.push('Hạn đọc nhỏ hơn ngày hiện tại');
-                isValid = false;
-            }
         }
-        if (descriptionInput.value.trim().length < 10) {
-            document.getElementById('errorDescription').innerText = 'Vui lòng nhập mô tả hoặc cảm nhận tối thiểu 10 ký tự.';
-            danhSachLoi.push('Mô tả dưới 10 ký tự');
+        if (desc.length < 10) {
+            document.getElementById('errorDescription').innerText = 'Mô tả hoặc cảm nhận cần tối thiểu 10 ký tự.';
             isValid = false;
         }
 
         if (!isValid) {
-            hienThiThongBaoNgoaiLeHTML(400, 'Dữ liệu biểu mẫu chưa hợp lệ (Mã 400)', `Vui lòng sửa các mục: ${danhSachLoi.join(', ')}.`);
+            hienThiThongBaoNgoaiLeHTML(400, 'Dữ liệu biểu mẫu chưa hợp lệ (Mã 400)', 'Vui lòng kiểm tra các dòng chữ báo đỏ bên dưới từng ô nhập.');
         }
         return isValid;
     }
 
-    [titleInput, authorInput, deadlineInput, descriptionInput].forEach(el => {
-        el.addEventListener('input', clearErrors);
-    });
-
-    /* [MÃ: NV-05] Hàm getFilteredAndSortedBooks: Kết hợp cả Tìm kiếm từ khóa + Lọc trạng thái + Lọc ưu tiên + Sắp xếp hạn đọc */
-    function getFilteredAndSortedBooks() {
+    // Hàm vẽ danh sách thẻ sách ra màn hình
+    function renderBooks() {
         const allBooks = getBooks();
-        const keyword = searchInput.value.trim().toLowerCase();
+        const keyword = (searchInput.value || '').trim().toLowerCase();
         const statusVal = filterStatus.value;
         const priorityVal = filterPriority.value;
         const sortVal = sortDeadline.value;
 
-        let filtered = allBooks.filter(book => {
+        let filtered = allBooks.filter(b => {
             const matchKeyword = !keyword ||
-                (book.title && book.title.toLowerCase().includes(keyword)) ||
-                (book.author && book.author.toLowerCase().includes(keyword)) ||
-                (book.description && book.description.toLowerCase().includes(keyword));
-            const matchStatus = (statusVal === 'all') || (book.status === statusVal);
-            const matchPriority = (priorityVal === 'all') || ((book.priority || 'Trung bình') === priorityVal);
+                (b.title && b.title.toLowerCase().includes(keyword)) ||
+                (b.author && b.author.toLowerCase().includes(keyword)) ||
+                (b.description && b.description.toLowerCase().includes(keyword));
+            const matchStatus = (statusVal === 'all') || (b.status === statusVal);
+            const matchPriority = (priorityVal === 'all') || (b.priority === priorityVal);
             return matchKeyword && matchStatus && matchPriority;
         });
 
@@ -132,269 +193,233 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (sortVal === 'desc') {
             filtered.sort((a, b) => new Date(b.deadline || '1970-01-01') - new Date(a.deadline || '1970-01-01'));
         }
-        return filtered;
-    }
 
-    /* [MÃ: NV-06] Hàm renderBooks: Vẽ danh sách các thẻ sách ra màn hình kệ sách (#bookGrid) */
-    function renderBooks(coCapNhatBanner = false) {
-        const displayBooks = getFilteredAndSortedBooks();
-        bookCountBadge.innerText = `${displayBooks.length} cuốn`;
+        if (bookCountBadge) {
+            bookCountBadge.innerText = `${filtered.length} cuốn`;
+        }
 
-        if (displayBooks.length === 0) {
+        if (filtered.length === 0) {
             bookGrid.innerHTML = `
-                <div class="col-md-12 text-center py-5">
-                    <i class="bi bi-journal-x fs-1 text-muted d-block mb-2 default-icon"></i>
-                    <img data-icon="icon-empty.png" class="empty-icon mb-3 dynamic-icon" alt="">
-                    <p class="text-muted mb-0">Không tìm thấy cuốn sách nào phù hợp với điều kiện tìm kiếm.</p>
+                <div class="col-12">
+                    <div class="empty-state shadow-sm">
+                        <i class="bi bi-journal-x fs-1 d-block mb-2 text-muted default-icon"></i>
+                        <img data-icon="icon-empty.png" class="empty-icon mb-2 dynamic-icon" alt="">
+                        <p class="mb-0 text-muted">Không tìm thấy cuốn sách nào khớp với bộ lọc hiện tại.</p>
+                    </div>
                 </div>`;
             applyIconPack();
-            if (coCapNhatBanner) {
-                hienThiThongBaoNgoaiLeHTML(404, 'Không tìm thấy cuốn sách nào khớp bộ lọc (Mã 404)', 'Hãy thử xóa từ khóa tìm kiếm hoặc chuyển hộp lọc về Tất cả.');
+            if (allBooks.length > 0) {
+                hienThiThongBaoNgoaiLeHTML(404, 'Không tìm thấy kết quả phù hợp (Mã 404)', 'Không có cuốn sách nào khớp với từ khóa hoặc tiêu chí lọc.');
             }
             return;
         }
 
-        if (coCapNhatBanner) {
-            hienThiThongBaoNgoaiLeHTML(200, 'Lọc và sắp xếp kệ sách thành công (Mã 200)', `Tìm thấy ${displayBooks.length} cuốn sách phù hợp với điều kiện của bạn.`);
-        }
+        bookGrid.innerHTML = filtered.map(book => {
+            const statusClass = book.status === 'Đã đọc'
+                ? 'bg-success'
+                : (book.status === 'Đang đọc' ? 'bg-warning text-dark' : 'bg-secondary');
 
-        bookGrid.innerHTML = displayBooks.map(book => {
-            const isDone = book.status === 'Đã đọc';
-            let statusBadgeClass = 'bg-secondary';
-            if (book.status === 'Đã đọc') statusBadgeClass = 'bg-success';
-            else if (book.status === 'Đang đọc') statusBadgeClass = 'bg-warning text-dark';
+            const priorityClass = book.priority === 'Cao'
+                ? 'text-danger fw-bold'
+                : (book.priority === 'Thấp' ? 'text-secondary' : 'text-primary');
 
-            const prio = book.priority || 'Trung bình';
-            let priorityBadgeClass = 'bg-secondary';
-            if (prio === 'Cao') priorityBadgeClass = 'bg-danger';
-            else if (prio === 'Trung bình') priorityBadgeClass = 'bg-primary';
-
-            const formattedDeadline = book.deadline
-                ? book.deadline.split('-').reverse().join('/')
-                : 'Chưa đặt lịch';
-
-            const fallbackCover = createOfflineCoverSVG(book.title, book.author);
-            const coverSrc = (book.coverUrl && book.coverUrl.trim() !== '') ? book.coverUrl : fallbackCover;
-            const safeTitleAttr = (book.title || '').replace(/'/g, "\\'");
-            const safeAuthorAttr = (book.author || '').replace(/'/g, "\\'");
+            const fallbackImg = createFallbackCover(book.title, book.author);
+            const coverSrc = (book.coverUrl && book.coverUrl.trim() !== '') ? book.coverUrl : fallbackImg;
 
             return `
-                <div class="col-md-4">
-                    <div class="card book-card shadow-sm border-0 rounded-4 h-100 bg-body ${isDone ? 'book-done' : ''}">
-                        <div class="book-cover-wrapper">
-                            <img src="${coverSrc}" class="book-cover-img" alt="${book.title}"
-                                 onerror="xuLyLoiAnhBia(this, '${safeTitleAttr}', '${safeAuthorAttr}')">
+            <div class="col-md-6 col-lg-4">
+                <div class="card book-card h-100 shadow-sm border-0 rounded-4 overflow-hidden bg-body">
+                    <div class="position-relative">
+                        <img src="${coverSrc}" class="book-cover w-100" alt="${book.title}"
+                             onerror="this.onerror=null; this.src='${fallbackImg}';">
+                        <span class="badge ${statusClass} badge-status position-absolute top-0 end-0 m-3 shadow-sm">
+                            ${book.status || 'Chưa đọc'}
+                        </span>
+                    </div>
+                    <div class="card-body d-flex flex-column p-4">
+                        <h5 class="card-title fw-bold mb-1 text-truncate" title="${book.title}">${book.title}</h5>
+                        <p class="text-muted small mb-2"><i class="bi bi-person me-1"></i>${book.author || 'Chưa rõ tác giả'}</p>
+                        <p class="card-text small text-secondary flex-grow-1 mb-3">${book.description || ''}</p>
+
+                        <div class="d-flex justify-content-between align-items-center small text-muted border-top pt-2 mb-3">
+                            <span><i class="bi bi-calendar-event me-1"></i>${book.deadline || 'Chưa đặt'}</span>
+                            <span class="${priorityClass}"><i class="bi bi-flag me-1"></i>${book.priority || 'Trung bình'}</span>
                         </div>
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                <span class="badge ${statusBadgeClass}">${book.status}</span>
-                                <span class="badge ${priorityBadgeClass}">Ưu tiên: ${prio}</span>
-                            </div>
-                            <h5 class="fw-bold mb-1 book-title-text">${book.title}</h5>
-                            <p class="small text-muted mb-1"><i class="bi bi-person-pen me-1"></i>Tác giả: <strong>${book.author}</strong></p>
-                            <p class="small text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>Hạn đọc: <strong>${formattedDeadline}</strong></p>
-                            <p class="small mb-3 flex-grow-1">${book.description || 'Cuốn sách hay trong tủ sách cá nhân.'}</p>
-                            <div class="d-flex gap-2 mt-auto pt-3 border-top">
-                                <button class="btn btn-sm ${isDone ? 'btn-outline-secondary' : 'btn-success'} flex-grow-1" onclick="toggleBookDone('${book.id}')">
-                                    <i class="bi ${isDone ? 'bi-arrow-counterclockwise' : 'bi-check2-circle'} me-1"></i>${isDone ? 'Đọc lại' : 'Đã đọc xong'}
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-sm btn-ai-note w-100" onclick="handleSendAINote('${book.id}', this)">
+                                <i class="bi bi-stars me-1"></i>Tạo ghi chú AI & Gửi mail
+                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-success flex-grow-1" onclick="toggleBookStatus('${book.id}')" title="Đổi nhanh trạng thái đọc">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Đổi trạng thái
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="startEditBook('${book.id}')">
-                                    <i class="bi bi-pencil-square"></i> Sửa
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="startEditBook('${book.id}')" title="Sửa thông tin">
+                                    <i class="bi bi-pencil"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteBook('${book.id}')">
-                                    <i class="bi bi-trash"></i> Xóa
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteBook('${book.id}')" title="Xóa sách">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>`;
         }).join('');
+
+        applyIconPack();
     }
 
-    /* [MÃ: NV-07] Xử lý khi bấm nút "Lưu vào tủ sách" (Thêm mới hoặc Cập nhật sách đang sửa) */
-    bookForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const editingId = bookIdInput.value;
-        const isEditing = Boolean(editingId);
+    // Xử lý thêm mới hoặc lưu cập nhật sách
+    if (bookForm) {
+        bookForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!validateBookForm()) return;
 
-        ghiLogF12('BIỂU MẪU SÁCH', isEditing ? `Bấm nút Lưu cập nhật sách ID: ${editingId}` : 'Bấm nút Thêm sách mới');
+            const books = getBooks();
+            const editingId = document.getElementById('bookId').value;
 
-        if (!validateBookForm(isEditing)) {
-            Swal.fire('Dữ liệu chưa hợp lệ (Mã 400)', 'Vui lòng kiểm tra lại các dòng nhắc lỗi màu đỏ dưới ô nhập.', 'warning');
-            return;
-        }
+            const bookData = {
+                id: editingId || String(Date.now()),
+                title: document.getElementById('title').value.trim(),
+                author: document.getElementById('author').value.trim(),
+                deadline: document.getElementById('deadline').value,
+                priority: document.getElementById('priority').value,
+                status: document.getElementById('status').value,
+                coverUrl: document.getElementById('coverUrl').value.trim(),
+                description: document.getElementById('description').value.trim()
+            };
 
-        const allBooks = getBooks();
-        const bookData = {
-            id: isEditing ? editingId : Date.now().toString(),
-            title: titleInput.value.trim(),
-            author: authorInput.value.trim(),
-            deadline: deadlineInput.value,
-            priority: priorityInput.value,
-            status: statusInput.value,
-            coverUrl: coverUrlInput.value.trim(),
-            description: descriptionInput.value.trim()
-        };
-
-        if (isEditing) {
-            const idx = allBooks.findIndex(b => String(b.id) === String(editingId));
-            if (idx === -1) {
-                hienThiThongBaoNgoaiLeHTML(404, 'Không tìm thấy mã sách cần sửa (Mã 404)', `Sách có ID ${editingId} không còn tồn tại trong bộ nhớ.`);
-                return;
+            if (editingId) {
+                const idx = books.findIndex(b => String(b.id) === String(editingId));
+                if (idx !== -1) books[idx] = { ...books[idx], ...bookData };
+                hienThiThongBaoNgoaiLeHTML(200, 'Cập nhật sách thành công (Mã 200)', `Đã lưu thay đổi cho cuốn "${bookData.title}".`);
+            } else {
+                books.unshift(bookData);
+                hienThiThongBaoNgoaiLeHTML(200, 'Thêm sách mới thành công (Mã 200)', `Đã đưa cuốn "${bookData.title}" vào kệ sách.`);
             }
-            allBooks[idx] = bookData;
-            saveBooks(allBooks);
-            hienThiThongBaoNgoaiLeHTML(200, 'Cập nhật thông tin sách thành công (Mã 200)', `Đã lưu thay đổi cho cuốn "${bookData.title}".`);
-            Swal.fire('Đã cập nhật (Mã 200)', `Đã lưu thay đổi cho cuốn "${bookData.title}".`, 'success');
-        } else {
-            allBooks.unshift(bookData);
-            saveBooks(allBooks);
-            hienThiThongBaoNgoaiLeHTML(200, 'Thêm sách mới thành công (Mã 200)', `Đã đưa cuốn "${bookData.title}" vào kệ sách cá nhân.`);
-            Swal.fire('Đã thêm sách (Mã 200)', `Cuốn "${bookData.title}" đã được thêm vào kệ!`, 'success');
-        }
 
-        resetBookForm();
-        renderBooks(false);
-    });
+            saveBooks(books);
+            resetBookForm();
+            renderBooks();
+        });
+    }
 
     function resetBookForm() {
         bookForm.reset();
-        bookIdInput.value = '';
-        deadlineInput.value = defaultDate.toISOString().split('T')[0];
-        priorityInput.value = 'Trung bình';
-        statusInput.value = 'Chưa đọc';
-        clearErrors();
-        formHeading.innerHTML = `<i class="bi bi-plus-circle text-primary me-2 default-icon"></i><img data-icon="icon-add.png" class="title-icon me-2 dynamic-icon" alt="">Thêm sách mới vào tủ`;
-        btnSubmitBook.innerHTML = `<i class="bi bi-save me-1"></i>Lưu vào tủ sách`;
+        document.getElementById('bookId').value = '';
+        document.getElementById('formHeading').innerHTML = `<i class="bi bi-plus-circle text-primary me-2 default-icon"></i><img data-icon="icon-add.png" class="title-icon me-2 dynamic-icon" alt="">Thêm sách mới vào tủ`;
+        document.getElementById('btnSubmitBook').innerHTML = `<i class="bi bi-save me-1"></i>Lưu vào tủ sách`;
         btnCancelEdit.classList.add('d-none');
         applyIconPack();
     }
 
-    btnCancelEdit.addEventListener('click', () => {
-        hienThiThongBaoNgoaiLeHTML(300, 'Đã hủy chế độ chỉnh sửa (Mã 300)', 'Biểu mẫu đã quay về trạng thái Thêm sách mới.');
-        resetBookForm();
-    });
+    if (btnCancelEdit) {
+        btnCancelEdit.addEventListener('click', resetBookForm);
+    }
 
-    /* [MÃ: NV-08] Ba hàm gắn vào 3 nút bấm trên từng thẻ sách: Đánh dấu đọc xong, Sửa sách, Xóa sách */
-    window.toggleBookDone = function(id) {
-        const allBooks = getBooks();
-        const book = allBooks.find(b => String(b.id) === String(id));
-        if (!book) {
-            hienThiThongBaoNgoaiLeHTML(404, 'Không tìm thấy sách cần đổi trạng thái (Mã 404)', `Không tồn tại sách có ID: ${id}`);
-            return;
-        }
-        const trangThaiCu = book.status;
-        book.status = (book.status === 'Đã đọc') ? 'Đang đọc' : 'Đã đọc';
-        saveBooks(allBooks);
-        renderBooks(false);
-        hienThiThongBaoNgoaiLeHTML(200, 'Đổi trạng thái đọc thành công (Mã 200)', `Cuốn "${book.title}" đã chuyển từ "${trangThaiCu}" sang "${book.status}".`);
-    };
-
+    // Đưa thông tin sách lên biểu mẫu để sửa
     window.startEditBook = function(id) {
-        const allBooks = getBooks();
-        const book = allBooks.find(b => String(b.id) === String(id));
-        if (!book) {
-            hienThiThongBaoNgoaiLeHTML(404, 'Không tìm thấy sách để sửa (Mã 404)', `Không tồn tại sách có ID: ${id}`);
-            return;
-        }
+        const book = getBooks().find(b => String(b.id) === String(id));
+        if (!book) return;
 
-        bookIdInput.value = book.id;
-        titleInput.value = book.title || '';
-        authorInput.value = book.author || '';
-        deadlineInput.value = book.deadline || defaultDate.toISOString().split('T')[0];
-        priorityInput.value = book.priority || 'Trung bình';
-        statusInput.value = book.status || 'Chưa đọc';
-        coverUrlInput.value = book.coverUrl || '';
-        descriptionInput.value = book.description || 'Cuốn sách đáng đọc trong tủ sách cá nhân.';
-        clearErrors();
+        document.getElementById('bookId').value = book.id;
+        document.getElementById('title').value = book.title || '';
+        document.getElementById('author').value = book.author || '';
+        document.getElementById('deadline').value = book.deadline || '';
+        document.getElementById('priority').value = book.priority || 'Trung bình';
+        document.getElementById('status').value = book.status || 'Chưa đọc';
+        document.getElementById('coverUrl').value = book.coverUrl || '';
+        document.getElementById('description').value = book.description || '';
 
-        formHeading.innerHTML = `<i class="bi bi-pencil-square text-primary me-2"></i>Cập nhật thông tin sách`;
-        btnSubmitBook.innerHTML = `<i class="bi bi-check2-circle me-1"></i>Lưu thay đổi`;
+        document.getElementById('formHeading').innerHTML = `<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật: ${book.title}`;
+        document.getElementById('btnSubmitBook').innerHTML = `<i class="bi bi-check2-circle me-1"></i>Cập nhật ngay`;
         btnCancelEdit.classList.remove('d-none');
-
-        hienThiThongBaoNgoaiLeHTML(300, `Đang nạp dữ liệu sách lên khung sửa (Mã 300)`, `Đang chỉnh sửa cuốn "${book.title}". Hãy bấm Lưu thay đổi sau khi sửa xong.`);
-        document.getElementById('bookFormCard').scrollIntoView({ behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    window.deleteBook = function(id) {
-        const allBooks = getBooks();
-        const book = allBooks.find(b => String(b.id) === String(id));
-        if (!book) {
-            hienThiThongBaoNgoaiLeHTML(404, 'Không tìm thấy sách cần xóa (Mã 404)', `Không tồn tại sách có ID: ${id}`);
-            return;
-        }
+    // Đổi nhanh trạng thái đọc (Chưa đọc -> Đang đọc -> Đã đọc)
+    window.toggleBookStatus = function(id) {
+        const books = getBooks();
+        const idx = books.findIndex(b => String(b.id) === String(id));
+        if (idx === -1) return;
 
-        ghiLogF12('YÊU CẦU XÓA SÁCH', `Mở hộp thoại xác nhận xóa cuốn "${book.title}"`, { idSach: id });
+        const order = ['Chưa đọc', 'Đang đọc', 'Đã đọc'];
+        const currentIdx = order.indexOf(books[idx].status);
+        books[idx].status = order[(currentIdx + 1) % order.length];
+
+        saveBooks(books);
+        renderBooks();
+        hienThiThongBaoNgoaiLeHTML(200, 'Đã đổi trạng thái đọc (Mã 200)', `Cuốn "${books[idx].title}" đã chuyển sang "${books[idx].status}".`);
+    };
+
+    // Xóa sách khỏi tủ
+    window.deleteBook = function(id) {
+        const books = getBooks();
+        const target = books.find(b => String(b.id) === String(id));
+        if (!target) return;
 
         Swal.fire({
-            title: 'Xóa cuốn sách này?',
-            text: `Bạn có chắc muốn xóa cuốn "${book.title}" khỏi kệ sách không?`,
+            title: `Xóa "${target.title}"?`,
+            text: 'Cuốn sách này sẽ được gỡ khỏi kệ sách của bạn.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Đồng ý xóa',
+            confirmButtonText: 'Xóa sách',
             cancelButtonText: 'Hủy'
         }).then((result) => {
             if (result.isConfirmed) {
-                const updated = allBooks.filter(b => String(b.id) !== String(id));
+                const updated = books.filter(b => String(b.id) !== String(id));
                 saveBooks(updated);
-                renderBooks(false);
-                hienThiThongBaoNgoaiLeHTML(200, 'Xóa sách thành công (Mã 200)', `Đã gỡ cuốn "${book.title}" khỏi tủ sách cá nhân.`);
-                Swal.fire('Đã xóa! (Mã 200)', 'Cuốn sách đã được gỡ khỏi kệ.', 'success');
-            } else {
-                hienThiThongBaoNgoaiLeHTML(300, 'Đã hủy thao tác xóa sách (Mã 300)', `Cuốn "${book.title}" vẫn được giữ nguyên trên kệ.`);
+                renderBooks();
+                hienThiThongBaoNgoaiLeHTML(200, 'Đã xóa sách khỏi kệ (Mã 200)', `Đã gỡ cuốn "${target.title}".`);
             }
         });
     };
 
-    /* [MÃ: NV-09] Gắn sự kiện lắng nghe khi người dùng gõ tìm kiếm, chọn lọc trạng thái/ưu tiên hoặc sắp xếp hạn đọc */
-    [searchInput, filterStatus, filterPriority, sortDeadline].forEach(el => {
-        const suKien = el.tagName === 'INPUT' ? 'input' : 'change';
-        el.addEventListener(suKien, () => {
-            renderBooks(true);
-        });
-    });
-
-    // Nút gộp thêm danh sách sách từ tệp JSON bên ngoài vào kệ hiện tại
-    const btnBatchImport = document.getElementById('btnBatchImport');
+    // Gộp thêm danh sách sách từ tệp JSON bên ngoài
     if (btnBatchImport) {
         btnBatchImport.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = function(evt) {
                 try {
-                    const imported = JSON.parse(event.target.result);
-                    if (!Array.isArray(imported)) throw new Error('Format');
+                    const imported = JSON.parse(evt.target.result);
+                    if (!Array.isArray(imported)) throw new Error('Tệp JSON phải là một mảng danh sách sách.');
+
                     const currentBooks = getBooks();
-                    imported.forEach((item, idx) => {
-                        currentBooks.push({
-                            id: item.id ? `${item.id}_${Date.now()}_${idx}` : `${Date.now()}_${idx}`,
-                            title: item.title || 'Sách chưa đặt tên',
-                            author: item.author || 'Chưa rõ tác giả',
-                            deadline: item.deadline || defaultDate.toISOString().split('T')[0],
-                            priority: item.priority || 'Trung bình',
-                            status: item.status || 'Chưa đọc',
-                            coverUrl: item.coverUrl || '',
-                            description: item.description || 'Cuốn sách được gộp thêm từ tệp dữ liệu.'
-                        });
-                    });
-                    saveBooks(currentBooks);
-                    renderBooks(false);
-                    hienThiThongBaoNgoaiLeHTML(200, 'Gộp thêm tệp sách thành công (Mã 200)', `Đã nối thêm ${imported.length} cuốn sách từ tệp ${file.name} vào kệ.`);
-                    Swal.fire('Thành công (Mã 200)', `Đã gộp thêm ${imported.length} cuốn sách vào kệ!`, 'success');
-                } catch {
-                    hienThiThongBaoNgoaiLeHTML(400, 'Lỗi đọc tệp JSON gộp thêm (Mã 400)', `Tệp ${file.name} bị hỏng hoặc sai cấu trúc mảng JSON.`);
-                    Swal.fire('Lỗi (Mã 400)', 'Tệp không đúng định dạng dữ liệu sách.', 'error');
+                    const normalized = imported.map((item, index) => ({
+                        id: `${item.id || Date.now()}_${index}`,
+                        title: item.title || 'Sách chưa đặt tên',
+                        author: item.author || 'Chưa rõ tác giả',
+                        deadline: item.deadline || '2026-12-31',
+                        priority: item.priority || 'Trung bình',
+                        status: item.status || 'Chưa đọc',
+                        coverUrl: item.coverUrl || '',
+                        description: item.description || 'Được gộp thêm từ tệp lưu trữ cá nhân.'
+                    }));
+
+                    const merged = [...normalized, ...currentBooks];
+                    saveBooks(merged);
+                    renderBooks();
+                    hienThiThongBaoNgoaiLeHTML(200, `Đã gộp thêm ${normalized.length} cuốn sách (Mã 200)`, `Tổng số sách trong tủ hiện tại là ${merged.length} cuốn.`);
+                    Swal.fire('Gộp thành công (Mã 200)', `Đã thêm ${normalized.length} cuốn sách vào kệ.`, 'success');
+                } catch (err) {
+                    hienThiThongBaoNgoaiLeHTML(400, 'Lỗi đọc tệp gộp thêm (Mã 400)', err.message);
+                    Swal.fire('Tệp không hợp lệ (Mã 400)', err.message, 'error');
                 }
+                btnBatchImport.value = '';
             };
             reader.readAsText(file);
-            e.target.value = '';
         });
     }
 
-    renderBooks(false);
+    // Lắng nghe sự kiện tìm kiếm, lọc và sắp xếp
+    [searchInput, filterStatus, filterPriority, sortDeadline].forEach(el => {
+        if (el) el.addEventListener('input', renderBooks);
+    });
+
+    renderBooks();
 });
